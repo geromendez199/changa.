@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
-import { jobCategories } from "../data/mockData";
+import { jobCategories } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 
 const totalSteps = 5;
@@ -14,6 +14,8 @@ export function PublishJob() {
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
+  const [publishing, setPublishing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [form, setForm] = useState({
     category: "" as (typeof jobCategories)[number] | "",
     title: "",
@@ -57,7 +59,7 @@ export function PublishJob() {
     }
   }, [form, step]);
 
-  const onContinue = () => {
+  const onContinue = async () => {
     if (step < 4) {
       if (!validateCurrentStep()) return;
       setStep((prev) => prev + 1);
@@ -65,7 +67,9 @@ export function PublishJob() {
     }
 
     if (step === 4) {
-      const created = addPublishedJob({
+      setPublishing(true);
+      setSubmitError(null);
+      const created = await addPublishedJob({
         category: form.category || "Otros",
         title: form.title,
         description: form.description,
@@ -75,6 +79,11 @@ export function PublishJob() {
         urgency: form.urgency,
         image: form.image,
       });
+      setPublishing(false);
+      if (!created) {
+        setSubmitError("No pudimos publicar tu changa. Revisá tu sesión e intentá de nuevo.");
+        return;
+      }
       navigate(`/publish/confirm/${created.id}`);
     }
   };
@@ -175,6 +184,8 @@ export function PublishJob() {
           </div>
         )}
 
+        {submitError && <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-sm text-red-700">{submitError}</div>}
+
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
             {errors.map((error) => (
@@ -185,8 +196,8 @@ export function PublishJob() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-5 max-w-md mx-auto shadow-2xl">
-        <Button variant="primary" size="lg" fullWidth disabled={!canProceed} onClick={onContinue} icon={step === 4 ? <Check size={18} /> : undefined}>
-          {step === 4 ? "Publicar changa" : "Continuar"}
+        <Button variant="primary" size="lg" fullWidth disabled={!canProceed || publishing} onClick={() => void onContinue()} icon={step === 4 ? <Check size={18} /> : undefined}>
+          {step === 4 ? (publishing ? "Publicando..." : "Publicar changa") : "Continuar"}
         </Button>
       </div>
     </div>

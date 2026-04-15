@@ -1,17 +1,12 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
-import {
-  applications as initialApplications,
-  currentUserId,
-  jobs as initialJobs,
-  messages as initialMessages,
-  notifications as initialNotifications,
-  users,
-} from "../data/mockData";
-import { Application, Conversation, Job, Message, Notification, PaymentMethod, Profile, Review, Transaction } from "../types/domain";
+import { useAuth } from "../../context/AuthContext";
+import { useGeolocation } from "../../hooks/useGeolocation";
 import { getConversationList, getConversationMessages, sendChatMessage } from "../../services/chat.service";
 import { getPaymentMethods, getTransactions } from "../../services/payments.service";
-import { getProfileBundle, getPublicProfiles } from "../../services/profiles.service";
-import { getFeaturedJobs, getJobById, searchJobs, SearchJobsParams } from "../../services/jobs.service";
+import { getProfileBundle, getPublicProfiles, updateProfileLocation } from "../../services/profiles.service";
+import { createJob, getFeaturedJobs, getJobById, getMyJobs, searchJobs, SearchJobsParams } from "../../services/jobs.service";
+import { getMyApplications } from "../../services/applications.service";
+import { Application, Conversation, Job, Message, Notification, PaymentMethod, Profile, Review, Transaction } from "../types/domain";
 
 interface NewJobInput {
   title: string;
@@ -25,8 +20,9 @@ interface NewJobInput {
 }
 
 interface AppStateValue {
-  currentUserId: string;
+  currentUserId: string | null;
   jobs: Job[];
+  myJobs: Job[];
   applications: Application[];
   conversations: Conversation[];
   messages: Message[];
@@ -38,7 +34,13 @@ interface AppStateValue {
   dataSource: "supabase" | "fallback";
   isLoading: boolean;
   errorMessage: string | null;
-  addPublishedJob: (input: NewJobInput) => Job;
+  selectedLocation: string;
+  locationCoords: { latitude: number; longitude: number } | null;
+  locationStatus: "idle" | "loading" | "granted" | "denied" | "error";
+  locationError: string | null;
+  requestDeviceLocation: () => void;
+  setManualLocation: (location: string) => Promise<void>;
+  addPublishedJob: (input: NewJobInput) => Promise<Job | null>;
   updateApplicationStatus: (applicationId: string, status: Application["status"]) => void;
   sendMessage: (conversationId: string, content: string) => Promise<void>;
   addPaymentMethod: (method: Omit<PaymentMethod, "id" | "colorClass">) => void;
@@ -51,18 +53,23 @@ interface AppStateValue {
 const AppStateContext = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [jobs, setJobs] = useState<Job[]>(initialJobs);
-  const [applications, setApplications] = useState<Application[]>(initialApplications);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { userId } = useAuth();
+  const { coords, status, errorMessage: locationError, requestLocation } = useGeolocation();
+
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [myJobs, setMyJobs] = useState<Job[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [profiles, setProfiles] = useState<Profile[]>(users);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [notifications] = useState<Notification[]>(initialNotifications);
+  const [notifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
+  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("supabase");
+  const [selectedLocation, setSelectedLocation] = useState("Ubicación pendiente");
 
   const refreshJobs = async (params: SearchJobsParams = {}) => {
     const result = Object.keys(params).length > 0 ? await searchJobs(params) : await getFeaturedJobs();
@@ -77,8 +84,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return result.data;
   };
 
-  const refreshProfile = async (userId: string) => {
-    const profileResult = await getProfileBundle(userId);
+  const refreshProfile = async (profileUserId: string) => {
+    const profileResult = await getProfileBundle(profileUserId);
     if (profileResult.error) setErrorMessage(profileResult.error);
 
     if (profileResult.data) {
@@ -87,6 +94,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         return [profileResult.data!.profile, ...rest];
       });
       setReviews(profileResult.data.reviews);
+      setSelectedLocation(profileResult.data.profile.location);
       setDataSource(profileResult.source);
     }
   };
@@ -105,55 +113,67 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setErrorMessage(null);
 
-      const [jobsResult, conversationsResult, methodsResult, txResult, profilesResult, currentProfileResult] = await Promise.all([
-        getFeaturedJobs(),
-        getConversationList(currentUserId),
-        getPaymentMethods(currentUserId),
-        getTransactions(currentUserId),
-        getPublicProfiles(),
-        getProfileBundle(currentUserId),
-      ]);
-
+      const jobsResult = await getFeaturedJobs();
       setJobs(jobsResult.data);
-      setConversations(conversationsResult.data);
-      setPaymentMethods(methodsResult.data);
-      setTransactions(txResult.data);
+      if (jobsResult.error) setErrorMessage(jobsResult.error);
+
+      const profilesResult = await getPublicProfiles();
       setProfiles(profilesResult.data);
-      setReviews(currentProfileResult.data?.reviews ?? []);
 
-      const firstError = [jobsResult, conversationsResult, methodsResult, txResult, profilesResult, currentProfileResult].find((result) => result.error)?.error;
-      if (firstError) setErrorMessage(firstError);
+      if (userId) {
+        const [conversationsResult, methodsResult, txResult, currentProfileResult, myJobsResult, applicationsResult] = await Promise.all([
+          getConversationList(userId),
+          getPaymentMethods(userId),
+          getTransactions(userId),
+          getProfileBundle(userId),
+          getMyJobs(userId),
+          getMyApplications(userId),
+        ]);
 
-      const sources = [jobsResult.source, conversationsResult.source, methodsResult.source, txResult.source, profilesResult.source, currentProfileResult.source];
-      setDataSource(sources.every((source) => source === "supabase") ? "supabase" : "fallback");
+        setConversations(conversationsResult.data);
+        setPaymentMethods(methodsResult.data);
+        setTransactions(txResult.data);
+        setReviews(currentProfileResult.data?.reviews ?? []);
+        setMyJobs(myJobsResult.data);
+        setApplications(applicationsResult.data);
 
+        if (currentProfileResult.data?.profile.location) {
+          setSelectedLocation(currentProfileResult.data.profile.location);
+        }
+
+        const firstError = [jobsResult, conversationsResult, methodsResult, txResult, profilesResult, currentProfileResult, myJobsResult, applicationsResult].find((result) => result.error)?.error;
+        if (firstError) setErrorMessage(firstError);
+      } else {
+        setConversations([]);
+        setPaymentMethods([]);
+        setTransactions([]);
+        setReviews([]);
+        setMyJobs([]);
+        setApplications([]);
+      }
+
+      setDataSource(jobsResult.source);
       setIsLoading(false);
     }
 
     bootstrap();
-  }, []);
+  }, [userId]);
 
-  const addPublishedJob = (input: NewJobInput) => {
-    const createdJob: Job = {
-      id: `job-${Date.now()}`,
-      title: input.title,
-      description: input.description,
-      category: input.category,
-      location: input.location,
-      priceValue: input.priceValue,
-      priceLabel: `$${input.priceValue.toLocaleString("es-AR")}`,
-      availability: input.availability,
-      urgency: input.urgency,
-      image: input.image || "https://images.unsplash.com/photo-1556911220-bff31c812dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      rating: 5,
-      distanceKm: 0.6,
-      postedByUserId: currentUserId,
-      postedAt: new Date().toISOString(),
-      status: "publicado",
-    };
+  const addPublishedJob = async (input: NewJobInput) => {
+    if (!userId) {
+      setErrorMessage("Necesitás iniciar sesión para publicar.");
+      return null;
+    }
 
-    setJobs((prev) => [createdJob, ...prev]);
-    return createdJob;
+    const createdResult = await createJob({ ...input, postedByUserId: userId });
+    if (!createdResult.data) {
+      if (createdResult.error) setErrorMessage(createdResult.error);
+      return null;
+    }
+
+    setJobs((prev) => [createdResult.data!, ...prev]);
+    setMyJobs((prev) => [createdResult.data!, ...prev]);
+    return createdResult.data;
   };
 
   const updateApplicationStatus = (applicationId: string, status: Application["status"]) => {
@@ -161,7 +181,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const sendMessage = async (conversationId: string, content: string) => {
-    const result = await sendChatMessage({ conversationId, senderUserId: currentUserId, content });
+    if (!userId) return;
+
+    const result = await sendChatMessage({ conversationId, senderUserId: userId, content });
     if (!result.data) return;
 
     setMessages((prev) => [...prev, result.data!]);
@@ -185,10 +207,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setPaymentMethods((prev) => [newMethod, ...prev.map((item) => ({ ...item, isDefault: method.isDefault ? false : item.isDefault }))]);
   };
 
+  const setManualLocation = async (location: string) => {
+    setSelectedLocation(location);
+    if (userId) {
+      const result = await updateProfileLocation(userId, location);
+      if (result.error) setErrorMessage(result.error);
+      if (result.data) {
+        setProfiles((prev) => [result.data!, ...prev.filter((profile) => profile.id !== result.data!.id)]);
+      }
+    }
+  };
+
   const value = useMemo(
     () => ({
-      currentUserId,
+      currentUserId: userId,
       jobs,
+      myJobs,
       applications,
       conversations,
       messages,
@@ -200,6 +234,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       dataSource,
       isLoading,
       errorMessage,
+      selectedLocation,
+      locationCoords: coords,
+      locationStatus: status,
+      locationError,
+      requestDeviceLocation: requestLocation,
+      setManualLocation,
       addPublishedJob,
       updateApplicationStatus,
       sendMessage,
@@ -209,7 +249,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       refreshChatDetail,
     }),
-    [applications, conversations, dataSource, errorMessage, isLoading, jobs, messages, notifications, paymentMethods, profiles, reviews, transactions],
+    [applications, conversations, coords, dataSource, errorMessage, isLoading, jobs, locationError, messages, myJobs, notifications, paymentMethods, profiles, requestLocation, reviews, selectedLocation, status, transactions, userId],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
@@ -217,11 +257,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 export function useAppState() {
   const context = useContext(AppStateContext);
-  if (!context) {
-    throw new Error("useAppState debe usarse dentro de AppStateProvider");
-  }
-
+  if (!context) throw new Error("useAppState debe usarse dentro de AppStateProvider");
   return context;
 }
 
-export const useCurrentUser = () => users.find((user) => user.id === currentUserId)!;
+export const useCurrentUser = () => {
+  const { currentUserId, profiles } = useAppState();
+  return currentUserId ? profiles.find((user) => user.id === currentUserId) ?? null : null;
+};

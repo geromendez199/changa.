@@ -1,4 +1,5 @@
 import { MessageCircle } from "lucide-react";
+import { EmptyStateCard } from "../components/EmptyStateCard";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { useAppState } from "../hooks/useAppState";
@@ -53,10 +54,14 @@ export function Chat() {
       </div>
 
       {rows.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 px-6">
-          <div className="w-24 h-24 bg-[#F8FAFC] rounded-3xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-200"><MessageCircle size={40} className="text-gray-400" /></div>
-          <h3 className="font-bold text-[#111827] text-lg mb-2">No tenés mensajes</h3>
-          <p className="text-gray-600 text-center text-sm max-w-xs">Cuando te contacten por un trabajo, las conversaciones aparecerán acá</p>
+        <div className="px-6 py-8">
+          <EmptyStateCard
+            icon={<MessageCircle size={28} />}
+            title="No tenés conversaciones"
+            description="Cuando te contacten por una changa, las conversaciones van a aparecer acá."
+            actionLabel="Explorar changas"
+            onAction={() => navigate("/search")}
+          />
         </div>
       )}
 

@@ -1,4 +1,3 @@
-import { jobs as mockJobs } from "../data/mockData";
 import { supabase } from "../lib/supabase";
 import { Job } from "../types/domain";
 import { JobsRow, mapJobRow } from "../types/supabase";
@@ -11,27 +10,16 @@ export interface SearchJobsParams {
   sortBy?: "distance" | "newest";
 }
 
-function applySearchFilters(rows: Job[], params: SearchJobsParams): Job[] {
-  const normalizedQuery = (params.query ?? "").trim().toLowerCase();
-
-  return rows
-    .filter((job) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        job.title.toLowerCase().includes(normalizedQuery) ||
-        job.description.toLowerCase().includes(normalizedQuery) ||
-        job.category.toLowerCase().includes(normalizedQuery);
-      const matchesCategory = !params.category || params.category === "Todos" || job.category === params.category;
-      const matchesUrgency = !params.onlyUrgent || job.urgency === "urgente";
-
-      return matchesQuery && matchesCategory && matchesUrgency;
-    })
-    .sort((a, b) => {
-      if (params.sortBy === "newest") {
-        return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
-      }
-      return a.distanceKm - b.distanceKm;
-    });
+export interface CreateJobInput {
+  postedByUserId: string;
+  title: string;
+  description: string;
+  category: Job["category"];
+  location: string;
+  priceValue: number;
+  availability: string;
+  urgency: Job["urgency"];
+  image?: string;
 }
 
 export async function getFeaturedJobs(): Promise<ServiceResult<Job[]>> {
@@ -39,58 +27,80 @@ export async function getFeaturedJobs(): Promise<ServiceResult<Job[]>> {
 }
 
 export async function searchJobs(params: SearchJobsParams): Promise<ServiceResult<Job[]>> {
-  if (shouldUseFallback()) {
-    return { data: applySearchFilters(mockJobs, params), source: "fallback" };
-  }
+  if (shouldUseFallback()) return { data: [], source: "fallback", error: "Configurá Supabase para ver changas reales." };
 
   try {
     let query = supabase!.from("jobs").select("*").eq("status", "publicado");
 
-    if (params.category && params.category !== "Todos") {
-      query = query.eq("category", params.category);
-    }
-
-    if (params.onlyUrgent) {
-      query = query.eq("urgency", "urgente");
-    }
-
-    if (params.query?.trim()) {
-      query = query.or(`title.ilike.%${params.query}%,description.ilike.%${params.query}%`);
-    }
+    if (params.category && params.category !== "Todos") query = query.eq("category", params.category);
+    if (params.onlyUrgent) query = query.eq("urgency", "urgente");
+    if (params.query?.trim()) query = query.or(`title.ilike.%${params.query}%,description.ilike.%${params.query}%`);
 
     query = params.sortBy === "newest" ? query.order("posted_at", { ascending: false }) : query.order("distance_km", { ascending: true });
 
     const { data, error } = await query.limit(30);
     if (error) throw error;
 
-    const mapped = (data as JobsRow[]).map(mapJobRow);
-    if (mapped.length === 0) {
-      return { data: applySearchFilters(mockJobs, params), source: "fallback", error: "Sin datos en Supabase" };
-    }
-
-    return { data: mapped, source: "supabase" };
+    return { data: (data as JobsRow[]).map(mapJobRow), source: "supabase" };
   } catch (error) {
-    return { data: applySearchFilters(mockJobs, params), source: "fallback", error: normalizeError(error) };
+    return { data: [], source: "fallback", error: normalizeError(error) };
   }
 }
 
 export async function getJobById(id: string): Promise<ServiceResult<Job | null>> {
-  if (shouldUseFallback()) {
-    return { data: mockJobs.find((job) => job.id === id) ?? null, source: "fallback" };
-  }
+  if (shouldUseFallback()) return { data: null, source: "fallback", error: "Configurá Supabase para ver changas reales." };
 
   try {
     const { data, error } = await supabase!.from("jobs").select("*").eq("id", id).maybeSingle();
     if (error) throw error;
+    return { data: data ? mapJobRow(data as JobsRow) : null, source: "supabase" };
+  } catch (error) {
+    return { data: null, source: "fallback", error: normalizeError(error) };
+  }
+}
 
-    if (!data) {
-      const fallback = mockJobs.find((job) => job.id === id) ?? null;
-      return { data: fallback, source: fallback ? "fallback" : "supabase" };
-    }
+export async function createJob(input: CreateJobInput): Promise<ServiceResult<Job | null>> {
+  if (shouldUseFallback()) return { data: null, source: "fallback", error: "Configurá Supabase para publicar changas reales." };
 
+  try {
+    const { data, error } = await supabase!
+      .from("jobs")
+      .insert({
+        posted_by_user_id: input.postedByUserId,
+        title: input.title,
+        description: input.description,
+        category: input.category,
+        location: input.location,
+        price_value: input.priceValue,
+        availability: input.availability,
+        urgency: input.urgency,
+        image:
+          input.image?.trim() ||
+          "https://images.unsplash.com/photo-1556911220-bff31c812dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+        status: "publicado",
+      })
+      .select("*")
+      .single();
+
+    if (error) throw error;
     return { data: mapJobRow(data as JobsRow), source: "supabase" };
   } catch (error) {
-    const fallback = mockJobs.find((job) => job.id === id) ?? null;
-    return { data: fallback, source: "fallback", error: normalizeError(error) };
+    return { data: null, source: "fallback", error: normalizeError(error) };
+  }
+}
+
+export async function getMyJobs(userId: string): Promise<ServiceResult<Job[]>> {
+  if (shouldUseFallback()) return { data: [], source: "fallback" };
+
+  try {
+    const { data, error } = await supabase!
+      .from("jobs")
+      .select("*")
+      .eq("posted_by_user_id", userId)
+      .order("posted_at", { ascending: false });
+    if (error) throw error;
+    return { data: (data as JobsRow[]).map(mapJobRow), source: "supabase" };
+  } catch (error) {
+    return { data: [], source: "fallback", error: normalizeError(error) };
   }
 }
