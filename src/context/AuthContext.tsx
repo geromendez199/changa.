@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentSession = await getCurrentSession();
       if (!mounted) return;
       setSession(currentSession);
+      if (currentSession?.user) await ensureProfileForUser(currentSession.user);
       setIsLoading(false);
     };
 

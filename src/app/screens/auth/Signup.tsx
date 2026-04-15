@@ -44,7 +44,7 @@ export function Signup() {
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
         <div className="mb-5 flex justify-center">
           <BrandLogo
-            imageClassName="h-9 w-auto object-contain"
+            imageClassName="h-14 w-auto object-contain"
             fallbackClassName="text-3xl font-bold tracking-tight text-[#111827]"
             alt="Changa"
           />

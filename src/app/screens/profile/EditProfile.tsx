@@ -1,5 +1,5 @@
 import { ArrowLeft, Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
@@ -8,13 +8,54 @@ import { useAppState, useCurrentUser } from "../../hooks/useAppState";
 export function EditProfile() {
   const navigate = useNavigate();
   const user = useCurrentUser();
-  const { setManualLocation } = useAppState();
+  const { saveUserProfile } = useAppState();
   const [name, setName] = useState(user?.name || "");
   const [location, setLocation] = useState(user?.location || "");
   const [bio, setBio] = useState(user?.bio || "");
-  const [saved, setSaved] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setName(user.name || "");
+    setLocation(user.location || "");
+    setBio(user.bio || "");
+  }, [user]);
 
   if (!user) return null;
+
+  const onSave = async () => {
+    setFeedback(null);
+
+    const trimmedName = name.trim();
+    const trimmedLocation = location.trim();
+
+    if (!trimmedName) {
+      setFeedback({ type: "error", message: "Ingresá un nombre válido." });
+      return;
+    }
+
+    if (!trimmedLocation) {
+      setFeedback({ type: "error", message: "Ingresá una ubicación válida." });
+      return;
+    }
+
+    setIsSaving(true);
+    const result = await saveUserProfile({
+      fullName: trimmedName,
+      location: trimmedLocation,
+      bio,
+    });
+    setIsSaving(false);
+
+    if (!result.ok) {
+      setFeedback({ type: "error", message: "No pudimos guardar tus datos" });
+      return;
+    }
+
+    setFeedback({ type: "success", message: "Perfil guardado correctamente" });
+    setTimeout(() => navigate("/profile"), 900);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-8 max-w-md mx-auto font-['Inter']">
@@ -30,9 +71,10 @@ export function EditProfile() {
         <Input placeholder="Ubicación" value={location} onChange={setLocation} />
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá algo sobre vos" className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]" />
 
-        {saved && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">Perfil actualizado.</div>}
+        {feedback?.type === "success" && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">{feedback.message}</div>}
+        {feedback?.type === "error" && <div className="bg-red-50 border border-red-100 rounded-2xl p-3 text-sm text-red-700">{feedback.message}</div>}
 
-        <Button fullWidth onClick={async () => { await setManualLocation(location); setSaved(true); setTimeout(() => navigate("/profile"), 800); }} icon={<Save size={18} />}>Guardar cambios</Button>
+        <Button fullWidth onClick={onSave} icon={<Save size={18} />} disabled={isSaving}>{isSaving ? "Guardando..." : "Guardar cambios"}</Button>
       </div>
     </div>
   );

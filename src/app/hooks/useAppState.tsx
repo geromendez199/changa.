@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useGeolocation } from "../../hooks/useGeolocation";
 import { getConversationList, getConversationMessages, sendChatMessage } from "../../services/chat.service";
 import { getPaymentMethods, getTransactions } from "../../services/payments.service";
-import { getProfileBundle, getPublicProfiles, updateProfileLocation } from "../../services/profiles.service";
+import { getProfileBundle, getPublicProfiles, saveProfile, updateProfileLocation } from "../../services/profiles.service";
 import { createJob, getFeaturedJobs, getJobById, getMyJobs, searchJobs, SearchJobsParams } from "../../services/jobs.service";
 import { getMyApplications } from "../../services/applications.service";
 import { getMyNotifications } from "../../services/notifications.service";
@@ -41,6 +41,7 @@ interface AppStateValue {
   locationError: string | null;
   requestDeviceLocation: () => void;
   setManualLocation: (location: string) => Promise<void>;
+  saveUserProfile: (input: { fullName: string; location: string; bio?: string }) => Promise<{ ok: boolean; message: string }>;
   addPublishedJob: (input: NewJobInput) => Promise<Job | null>;
   updateApplicationStatus: (applicationId: string, status: Application["status"]) => void;
   sendMessage: (conversationId: string, content: string) => Promise<void>;
@@ -74,6 +75,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("supabase");
   const [selectedLocation, setSelectedLocation] = useState(DEFAULT_LOCATION);
 
+
+  const updateProfileInState = useCallback((profile: Profile) => {
+    setProfiles((prev) => [profile, ...prev.filter((item) => item.id !== profile.id)]);
+
+    if (profile.location) {
+      setSelectedLocation(profile.location);
+    }
+  }, []);
+
   const pushError = useCallback((message?: string) => {
     if (message) setErrorMessage(message);
   }, []);
@@ -97,18 +107,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     if (!profileResult.data) return;
 
-    setProfiles((prev) => {
-      const rest = prev.filter((profile) => profile.id !== profileResult.data!.profile.id);
-      return [profileResult.data!.profile, ...rest];
-    });
+    updateProfileInState(profileResult.data.profile);
     setReviews(profileResult.data.reviews);
 
-    if (profileResult.data.profile.location) {
-      setSelectedLocation(profileResult.data.profile.location);
-    }
-
     setDataSource(profileResult.source);
-  }, [pushError]);
+  }, [pushError, updateProfileInState]);
 
   const refreshChatDetail = useCallback(async (conversationId: string) => {
     const result = await getConversationMessages(conversationId);
@@ -271,9 +274,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     pushError(result.error);
 
     if (result.data) {
-      setProfiles((prev) => [result.data!, ...prev.filter((profile) => profile.id !== result.data!.id)]);
+      updateProfileInState(result.data);
     }
-  }, [pushError, userId]);
+  }, [pushError, updateProfileInState, userId]);
+
+  const saveUserProfile = useCallback(async (input: { fullName: string; location: string; bio?: string }) => {
+    if (!userId) return { ok: false, message: "Necesitás iniciar sesión para editar tu perfil." };
+
+    const result = await saveProfile(userId, input);
+
+    if (!result.data) {
+      const message = result.error ?? "No pudimos guardar tus datos";
+      setErrorMessage(message);
+      return { ok: false, message };
+    }
+
+    updateProfileInState(result.data);
+    await refreshProfile(userId);
+
+    return { ok: true, message: "Perfil guardado correctamente" };
+  }, [refreshProfile, updateProfileInState, userId]);
 
   const value = useMemo(
     () => ({
@@ -297,6 +317,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       locationError,
       requestDeviceLocation: requestLocation,
       setManualLocation,
+      saveUserProfile,
       addPublishedJob,
       updateApplicationStatus,
       sendMessage,
@@ -327,6 +348,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       locationError,
       requestLocation,
       setManualLocation,
+      saveUserProfile,
       addPublishedJob,
       updateApplicationStatus,
       sendMessage,

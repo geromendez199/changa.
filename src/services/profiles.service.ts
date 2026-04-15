@@ -9,6 +9,12 @@ export interface ProfileBundle {
   reviews: Review[];
 }
 
+export interface SaveProfileInput {
+  fullName: string;
+  location: string;
+  bio?: string | null;
+}
+
 const defaultTrust = ["Email validado"];
 
 const mapReviews = (rows: unknown): Review[] =>
@@ -16,31 +22,101 @@ const mapReviews = (rows: unknown): Review[] =>
     .map(mapReviewRow)
     .filter((review) => isNonEmptyString(review.id));
 
+const buildDefaultProfilePayload = (userId: string, fullName: string, location: string, bio?: string | null) => ({
+  id: userId,
+  full_name: fullName,
+  avatar_letter: fullName.trim().charAt(0).toUpperCase() || "U",
+  location,
+  member_since: new Date().toLocaleString("es-AR", { month: "long", year: "numeric" }),
+  trust_indicators: defaultTrust,
+  success_rate: 0,
+  bio: isNonEmptyString(bio) ? bio.trim() : null,
+});
+
 export async function ensureProfileForUser(user: User): Promise<ServiceResult<Profile | null>> {
   if (!user?.id) return failureResult(null, "No pudimos validar tu perfil.");
   if (shouldUseFallback()) return successResult(null, "fallback");
 
   const defaultName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
-  const avatarLetter = defaultName.trim().charAt(0).toUpperCase() || "U";
 
   try {
-    const payload = {
-      id: user.id,
-      full_name: defaultName,
-      avatar_letter: avatarLetter,
-      location: "Ubicación pendiente",
-      member_since: new Date().toLocaleString("es-AR", { month: "long", year: "numeric" }),
-      trust_indicators: defaultTrust,
-      success_rate: 0,
-    };
+    const { data: existingProfile, error: existingError } = await supabase!
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle<ProfilesRow>();
 
-    const { data, error } = await supabase!.from("profiles").upsert(payload).select("*").single<ProfilesRow>();
+    if (existingError) throw existingError;
+
+    if (existingProfile) {
+      return successResult(mapProfileRow(existingProfile));
+    }
+
+    const payload = buildDefaultProfilePayload(user.id, defaultName, "Ubicación pendiente");
+
+    const { data, error } = await supabase!
+      .from("profiles")
+      .insert(payload)
+      .select("*")
+      .single<ProfilesRow>();
+
     if (error) throw error;
 
     const mappedProfile = mapProfileRow(data);
     return successResult(mappedProfile.id ? mappedProfile : null);
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos preparar tu perfil."));
+  }
+}
+
+export async function saveProfile(userId: string, input: SaveProfileInput): Promise<ServiceResult<Profile | null>> {
+  if (!isNonEmptyString(userId)) return failureResult(null, "No pudimos guardar tu perfil.");
+  if (!isNonEmptyString(input.fullName)) return failureResult(null, "Ingresá un nombre válido.");
+  if (!isNonEmptyString(input.location)) return failureResult(null, "Ingresá una ubicación válida.");
+  if (shouldUseFallback()) return successResult(null, "fallback");
+
+  const trimmedName = input.fullName.trim();
+  const trimmedLocation = input.location.trim();
+  const trimmedBio = isNonEmptyString(input.bio) ? input.bio.trim() : null;
+
+  try {
+    const { data: existingProfile, error: existingError } = await supabase!
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle<ProfilesRow>();
+
+    if (existingError) throw existingError;
+
+    if (!existingProfile) {
+      const payload = buildDefaultProfilePayload(userId, trimmedName, trimmedLocation, trimmedBio);
+      const { data: insertedProfile, error: insertError } = await supabase!
+        .from("profiles")
+        .insert(payload)
+        .select("*")
+        .single<ProfilesRow>();
+
+      if (insertError) throw insertError;
+      return successResult(mapProfileRow(insertedProfile));
+    }
+
+    const { data, error } = await supabase!
+      .from("profiles")
+      .update({
+        full_name: trimmedName,
+        avatar_letter: trimmedName.charAt(0).toUpperCase() || "U",
+        location: trimmedLocation,
+        bio: trimmedBio,
+      })
+      .eq("id", userId)
+      .select("*")
+      .single<ProfilesRow>();
+
+    if (error) throw error;
+
+    return successResult(mapProfileRow(data));
+  } catch (error) {
+    return failureResult(null, normalizeError(error, "No pudimos guardar tus datos."));
   }
 }
 

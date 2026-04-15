@@ -10,7 +10,7 @@ interface BrandLogoProps {
 
 export function BrandLogo({
   className = "",
-  imageClassName = "h-12 w-auto",
+  imageClassName = "h-12 w-auto object-contain",
   fallbackClassName = "text-3xl font-bold tracking-tight",
   alt,
 }: BrandLogoProps) {
@@ -23,7 +23,7 @@ export function BrandLogo({
   }
 
   return (
-    <div className={className}>
+    <div className={`flex items-center justify-center ${className}`.trim()}>
       <img
         src={logoSrc}
         alt={alt ?? BRAND.appName}
