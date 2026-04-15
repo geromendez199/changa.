@@ -1,4 +1,5 @@
-import { createBrowserRouter } from "react-router";
+import type { ReactElement } from "react";
+import { createBrowserRouter, Navigate, useLocation } from "react-router";
 import { Welcome } from "./screens/Welcome";
 import { Home } from "./screens/Home";
 import { SearchResults } from "./screens/SearchResults";
@@ -12,19 +13,42 @@ import { ChatDetail } from "./screens/chat/ChatDetail";
 import { EditProfile } from "./screens/profile/EditProfile";
 import { PublishConfirmation } from "./screens/publish/PublishConfirmation";
 import { NotFound } from "./screens/NotFound";
+import { Login } from "./screens/auth/Login";
+import { Signup } from "./screens/auth/Signup";
+import { useAuth } from "../context/AuthContext";
+import { Notifications } from "./screens/Notifications";
+
+function RequireAuth({ children }: { children: ReactElement }) {
+  const { userId, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">Cargando sesión...</div>;
+  }
+
+  if (!userId) {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
+  }
+
+  return children;
+}
 
 export const router = createBrowserRouter([
   { path: "/", element: <Welcome /> },
+  { path: "/login", element: <Login /> },
+  { path: "/signup", element: <Signup /> },
   { path: "/home", element: <Home /> },
   { path: "/search", element: <SearchResults /> },
   { path: "/job/:id", element: <JobDetail /> },
-  { path: "/publish", element: <PublishJob /> },
-  { path: "/publish/confirm/:id", element: <PublishConfirmation /> },
-  { path: "/my-jobs", element: <MyJobs /> },
-  { path: "/chat", element: <Chat /> },
-  { path: "/chat/:id", element: <ChatDetail /> },
-  { path: "/profile", element: <Profile /> },
-  { path: "/profile/edit", element: <EditProfile /> },
-  { path: "/payments", element: <Payments /> },
+  { path: "/publish", element: <RequireAuth><PublishJob /></RequireAuth> },
+  { path: "/publish/confirm/:id", element: <RequireAuth><PublishConfirmation /></RequireAuth> },
+  { path: "/my-jobs", element: <RequireAuth><MyJobs /></RequireAuth> },
+  { path: "/chat", element: <RequireAuth><Chat /></RequireAuth> },
+  { path: "/chat/:id", element: <RequireAuth><ChatDetail /></RequireAuth> },
+  { path: "/profile", element: <RequireAuth><Profile /></RequireAuth> },
+  { path: "/profile/edit", element: <RequireAuth><EditProfile /></RequireAuth> },
+  { path: "/payments", element: <RequireAuth><Payments /></RequireAuth> },
+  { path: "/notifications", element: <RequireAuth><Notifications /></RequireAuth> },
   { path: "*", element: <NotFound /> },
 ]);

@@ -61,14 +61,21 @@ export function Welcome() {
         </button>
 
         <button
-          onClick={() => navigate("/publish")}
+          onClick={() => navigate("/login") }
           className="w-full bg-white/10 backdrop-blur-sm border-2 border-white text-white py-4 px-6 rounded-full font-bold text-lg hover:bg-white/20 transition-all duration-200 active:scale-[0.98]"
         >
-          Publicar mi servicio
+          Iniciar sesión
+        </button>
+
+        <button
+          onClick={() => navigate("/signup") }
+          className="w-full bg-white/5 backdrop-blur-sm border border-white/60 text-white py-3.5 px-6 rounded-full font-semibold text-base hover:bg-white/15 transition-all duration-200 active:scale-[0.98]"
+        >
+          Crear cuenta
         </button>
 
         <p className="text-center text-white/60 text-sm mt-6">
-          Unete a más de 10,000 usuarios
+          Unite y conseguí changas reales cerca tuyo
         </p>
       </div>
     </div>

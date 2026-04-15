@@ -4,15 +4,20 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Badge } from "../components/Badge";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
+import { useAuth } from "../../context/AuthContext";
+import { EmptyStateCard } from "../components/EmptyStateCard";
 
 export function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { jobs, profiles, reviews, refreshProfile, isLoading } = useAppState();
+  const { signOut } = useAuth();
 
   useEffect(() => {
-    refreshProfile(currentUser.id);
-  }, [currentUser.id]);
+    if (currentUser?.id) refreshProfile(currentUser.id);
+  }, [currentUser?.id]);
+
+  if (!currentUser) return null;
 
   const profile = profiles.find((item) => item.id === currentUser.id) ?? currentUser;
   const myReviews = reviews.filter((review) => review.reviewedUserId === profile.id).slice(0, 2);
@@ -26,7 +31,7 @@ export function Profile() {
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-8">
             <button onClick={() => navigate("/profile/edit")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Pencil size={20} className="text-white" /></button>
-            <button className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
+            <button onClick={() => navigate("/notifications")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
           </div>
 
           <div className="flex flex-col items-center text-center">
@@ -48,15 +53,7 @@ export function Profile() {
         </div>
       </div>
 
-      <div className="px-6 mb-6">
-        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 border border-blue-100 flex items-center gap-4">
-          <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg"><Award size={24} className="text-white" /></div>
-          <div className="flex-1">
-            <h3 className="font-bold text-[#111827] mb-0.5">Confianza de la comunidad</h3>
-            <p className="text-sm text-gray-600">{profile.trustIndicators.join(" • ")}</p>
-          </div>
-        </div>
-      </div>
+      <div className="px-6 mb-6"><div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 border border-blue-100 flex items-center gap-4"><div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg"><Award size={24} className="text-white" /></div><div className="flex-1"><h3 className="font-bold text-[#111827] mb-0.5">Confianza de la comunidad</h3><p className="text-sm text-gray-600">{profile.trustIndicators.join(" • ")}</p></div></div></div>
 
       <div className="px-6 space-y-3 mb-6">
         <button onClick={() => navigate("/payments")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-green-50 p-3 rounded-2xl"><CreditCard size={24} className="text-[#10B981]" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Pagos</h3><p className="text-sm text-gray-500">Métodos y movimientos</p></div><ChevronRight size={20} className="text-gray-400" /></button>
@@ -76,10 +73,18 @@ export function Profile() {
             );
           })}
         </div>
-        {!isLoading && myReviews.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no tenés reseñas.</div>}
+        {!isLoading && myReviews.length === 0 && (
+          <EmptyStateCard
+            icon={<Star size={28} />}
+            title="Todavía no tenés reseñas"
+            description="Completá tu perfil y empezá a publicar para recibir tus primeras calificaciones."
+            actionLabel="Completar perfil"
+            onAction={() => navigate("/profile/edit")}
+          />
+        )}
       </div>
 
-      <div className="px-6 mt-8 mb-4"><button className="w-full text-red-600 font-semibold text-sm py-3 flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors"><LogOut size={18} />Cerrar sesión</button></div>
+      <div className="px-6 mt-8 mb-4"><button onClick={async () => { await signOut(); navigate("/login"); }} className="w-full text-red-600 font-semibold text-sm py-3 flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors"><LogOut size={18} />Cerrar sesión</button></div>
       <BottomNav />
     </div>
   );

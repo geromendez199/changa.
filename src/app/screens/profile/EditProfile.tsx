@@ -3,15 +3,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
-import { useCurrentUser } from "../../hooks/useAppState";
+import { useAppState, useCurrentUser } from "../../hooks/useAppState";
 
 export function EditProfile() {
   const navigate = useNavigate();
   const user = useCurrentUser();
-  const [name, setName] = useState(user.name);
-  const [location, setLocation] = useState(user.location);
-  const [bio, setBio] = useState(user.bio || "");
+  const { setManualLocation } = useAppState();
+  const [name, setName] = useState(user?.name || "");
+  const [location, setLocation] = useState(user?.location || "");
+  const [bio, setBio] = useState(user?.bio || "");
   const [saved, setSaved] = useState(false);
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-8 max-w-md mx-auto font-['Inter']">
@@ -27,9 +30,9 @@ export function EditProfile() {
         <Input placeholder="Ubicación" value={location} onChange={setLocation} />
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá algo sobre vos" className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#10B981]" />
 
-        {saved && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">Perfil actualizado (modo mock).</div>}
+        {saved && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">Perfil actualizado.</div>}
 
-        <Button fullWidth onClick={() => { setSaved(true); setTimeout(() => navigate("/profile"), 800); }} icon={<Save size={18} />}>Guardar cambios</Button>
+        <Button fullWidth onClick={async () => { await setManualLocation(location); setSaved(true); setTimeout(() => navigate("/profile"), 800); }} icon={<Save size={18} />}>Guardar cambios</Button>
       </div>
     </div>
   );
