@@ -21,7 +21,7 @@ export function EmptyStateCard({ icon, title, description, actionLabel, onAction
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col gap-2">
           {actionLabel && (
-            <button onClick={onAction} className="w-full bg-[#10B981] text-white rounded-full py-2.5 text-sm font-semibold">
+            <button onClick={onAction} className="w-full bg-[#0DAE79] text-white rounded-full py-2.5 text-sm font-semibold">
               {actionLabel}
             </button>
           )}

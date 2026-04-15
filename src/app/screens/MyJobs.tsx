@@ -30,9 +30,9 @@ export function MyJobs() {
             ["postulados", "Postulados", appliedRows.length],
             ["completados", "Hechos", completed.length],
           ] as const).map(([key, label, count]) => (
-            <button key={key} onClick={() => setActiveTab(key)} className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${activeTab === key ? "bg-white text-[#10B981] shadow-sm" : "text-gray-600"}`}>
+            <button key={key} onClick={() => setActiveTab(key)} className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${activeTab === key ? "bg-white text-[#0DAE79] shadow-sm" : "text-gray-600"}`}>
               {label}
-              <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs ${activeTab === key ? "bg-[#10B981] text-white" : "bg-gray-200 text-gray-600"}`}>{count}</span>
+              <span className={`ml-1.5 px-2 py-0.5 rounded-full text-xs ${activeTab === key ? "bg-[#0DAE79] text-white" : "bg-gray-200 text-gray-600"}`}>{count}</span>
             </button>
           ))}
         </div>
@@ -44,7 +44,7 @@ export function MyJobs() {
             <div className="flex gap-4 p-4">
               <img src={job.image} alt={job.title} className="w-20 h-20 object-cover rounded-2xl" />
               <div className="flex-1 min-w-0"><h3 className="font-bold text-[#111827] mb-2 line-clamp-1 text-base">{job.title}</h3><Badge variant="info" icon={<AlertCircle size={12} />}>Publicado</Badge><div className="flex items-center gap-2 mt-3 text-xs text-gray-500"><MapPin size={12} /><span>{job.location}</span></div></div>
-              <p className="text-[#10B981] font-bold text-base">{job.priceLabel}</p>
+              <p className="text-[#0DAE79] font-bold text-base">{job.priceLabel}</p>
             </div>
           </div>
         ))}
@@ -55,7 +55,7 @@ export function MyJobs() {
             <p className="text-sm text-gray-500 mb-3">{application.coverMessage}</p>
             <div className="flex items-center justify-between">
               <Badge variant={application.status === "aceptada" ? "success" : "warning"}>{application.status === "aceptada" ? "Aceptada" : application.status === "rechazada" ? "Rechazada" : "Enviada"}</Badge>
-              {application.status === "enviada" && <button onClick={() => updateApplicationStatus(application.id, "aceptada")} className="text-xs text-[#10B981] font-semibold bg-green-50 px-3 py-1.5 rounded-full">Marcar aceptada</button>}
+              {application.status === "enviada" && <button onClick={() => updateApplicationStatus(application.id, "aceptada")} className="text-xs text-[#0DAE79] font-semibold bg-green-50 px-3 py-1.5 rounded-full">Marcar aceptada</button>}
             </div>
           </div>
         ))}

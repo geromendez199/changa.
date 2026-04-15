@@ -40,7 +40,7 @@ export function SearchResults() {
         </div>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 flex-1 text-sm"><MapPin size={16} className="text-[#10B981]" /><span className="font-medium text-gray-700">{selectedLocation}</span></div>
+          <div className="flex items-center gap-2 flex-1 text-sm"><MapPin size={16} className="text-[#0DAE79]" /><span className="font-medium text-gray-700">{selectedLocation}</span></div>
           <button onClick={() => setShowFilters((s) => !s)} className="flex items-center gap-2 bg-[#F8FAFC] px-4 py-2.5 rounded-full text-sm font-semibold text-[#111827] border border-gray-200 hover:bg-gray-50 transition-colors"><SlidersHorizontal size={16} /> Filtros</button>
         </div>
 
@@ -53,7 +53,7 @@ export function SearchResults() {
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
           {categoryFilters.map((cat) => (
-            <button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${category === cat ? "bg-[#10B981] text-white shadow-lg shadow-[#10B981]/25" : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"}`}>{cat}</button>
+            <button key={cat} onClick={() => setCategory(cat)} className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${category === cat ? "bg-[#0DAE79] text-white shadow-lg shadow-[#0DAE79]/25" : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"}`}>{cat}</button>
           ))}
         </div>
       </div>

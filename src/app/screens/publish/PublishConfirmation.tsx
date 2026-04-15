@@ -12,7 +12,7 @@ export function PublishConfirmation() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter']">
       <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center">
-        <CheckCircle className="text-[#10B981] mx-auto mb-4" size={56} />
+        <CheckCircle className="text-[#0DAE79] mx-auto mb-4" size={56} />
         <h1 className="text-2xl font-bold text-[#111827] mb-2">¡Publicación creada!</h1>
         <p className="text-sm text-gray-500 mb-6">
           {job ? `Tu changa "${job.title}" ya está visible para la comunidad.` : "Tu changa fue publicada correctamente."}

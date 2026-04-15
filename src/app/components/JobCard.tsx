@@ -68,7 +68,7 @@ export function JobCard({
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100">
-            <span className="text-[#10B981] font-bold text-lg">{price}</span>
+            <span className="text-[#0DAE79] font-bold text-lg">{price}</span>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ export function JobCard({
                   <span>{distance}</span>
                 </div>
               </div>
-              <span className="text-[#10B981] font-bold text-base">{price}</span>
+              <span className="text-[#0DAE79] font-bold text-base">{price}</span>
             </div>
           </div>
         </div>

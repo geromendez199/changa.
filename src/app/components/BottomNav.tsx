@@ -32,7 +32,7 @@ export function BottomNav() {
           if (item.isCenter) {
             return (
               <button key={item.path} onClick={() => navigateItem(item.path, item.requiresAuth)} className="flex flex-col items-center justify-center -mt-8">
-                <div className="bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full p-4 shadow-lg shadow-[#10B981]/30 hover:shadow-xl hover:shadow-[#10B981]/40 transition-all duration-200 active:scale-95">
+                <div className="bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-full p-4 shadow-lg shadow-[#0DAE79]/30 hover:shadow-xl hover:shadow-[#0DAE79]/40 transition-all duration-200 active:scale-95">
                   <item.icon size={24} className="text-white" strokeWidth={2.5} />
                 </div>
                 <span className="text-[10px] font-medium text-gray-500 mt-2">{item.label}</span>
@@ -42,8 +42,8 @@ export function BottomNav() {
 
           return (
             <button key={item.path} onClick={() => navigateItem(item.path, item.requiresAuth)} className="flex flex-col items-center justify-center gap-1.5 py-2 px-3 rounded-2xl transition-all duration-200 min-w-[64px]">
-              <item.icon size={24} className={`transition-colors ${isActive(item.path) ? "text-[#10B981]" : "text-gray-400"}`} strokeWidth={isActive(item.path) ? 2.5 : 2} />
-              <span className={`text-[10px] font-medium transition-colors ${isActive(item.path) ? "text-[#10B981]" : "text-gray-500"}`}>{item.label}</span>
+              <item.icon size={24} className={`transition-colors ${isActive(item.path) ? "text-[#0DAE79]" : "text-gray-400"}`} strokeWidth={isActive(item.path) ? 2.5 : 2} />
+              <span className={`text-[10px] font-medium transition-colors ${isActive(item.path) ? "text-[#0DAE79]" : "text-gray-500"}`}>{item.label}</span>
             </button>
           );
         })}

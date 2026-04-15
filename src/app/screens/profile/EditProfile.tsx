@@ -28,7 +28,7 @@ export function EditProfile() {
       <div className="px-6 py-6 space-y-4">
         <Input placeholder="Nombre" value={name} onChange={setName} />
         <Input placeholder="Ubicación" value={location} onChange={setLocation} />
-        <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá algo sobre vos" className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#10B981]" />
+        <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá algo sobre vos" className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]" />
 
         {saved && <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-sm text-green-700">Perfil actualizado.</div>}
 

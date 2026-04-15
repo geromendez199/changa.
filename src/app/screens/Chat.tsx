@@ -32,9 +32,9 @@ export function Chat() {
 
       <div className="px-6 py-4 space-y-2">
         {rows.map(({ conv, otherUser, lastMessage, unreadCount, relatedJob }) => (
-          <button key={conv.id} onClick={() => navigate(`/chat/${conv.id}`)} className={`w-full text-left bg-white rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all duration-200 border ${unreadCount > 0 ? "border-[#10B981]/20" : "border-gray-100"}`}>
+          <button key={conv.id} onClick={() => navigate(`/chat/${conv.id}`)} className={`w-full text-left bg-white rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all duration-200 border ${unreadCount > 0 ? "border-[#0DAE79]/20" : "border-gray-100"}`}>
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">{otherUser?.avatarLetter ?? "?"}</div>
+              <div className="w-14 h-14 bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">{otherUser?.avatarLetter ?? "?"}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-1">
                   <div>
@@ -43,7 +43,7 @@ export function Chat() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className="text-xs text-gray-500 whitespace-nowrap">{formatRelative(conv.lastMessageAt)}</span>
-                    {unreadCount > 0 && <div className="bg-[#10B981] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">{unreadCount}</div>}
+                    {unreadCount > 0 && <div className="bg-[#0DAE79] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">{unreadCount}</div>}
                   </div>
                 </div>
                 <p className={`text-sm line-clamp-1 ${unreadCount > 0 ? "text-[#111827] font-semibold" : "text-gray-600"}`}>{lastMessage?.content ?? "Sin mensajes"}</p>

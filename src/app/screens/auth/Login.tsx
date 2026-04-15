@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../../context/AuthContext";
+import { BrandLogo } from "../../components/BrandLogo";
 
 export function Login() {
   const { signIn } = useAuth();
@@ -37,6 +38,14 @@ export function Login() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-6 pt-16 pb-10 max-w-md mx-auto font-['Inter']">
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+        <div className="mb-5 flex justify-center">
+          <BrandLogo
+            imageClassName="h-9 w-auto object-contain"
+            fallbackClassName="text-3xl font-bold tracking-tight text-[#111827]"
+            alt="Changa"
+          />
+        </div>
+
         <h1 className="text-2xl font-bold text-[#111827] mb-1">Iniciar sesión</h1>
         <p className="text-sm text-gray-500 mb-6">Entrá para publicar changas, chatear y gestionar tu perfil.</p>
 
@@ -53,7 +62,7 @@ export function Login() {
         </div>
 
         <p className="text-sm text-gray-600 text-center mt-5">
-          ¿No tenés cuenta? <Link to="/signup" className="text-[#10B981] font-semibold">Crear cuenta</Link>
+          ¿No tenés cuenta? <Link to="/signup" className="text-[#0DAE79] font-semibold">Crear cuenta</Link>
         </p>
       </div>
     </div>

@@ -23,14 +23,14 @@ export function Payments() {
       </div>
 
       <div className="px-6 py-6">
-        <div className="bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] rounded-3xl p-6 text-white shadow-xl">
+        <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] rounded-3xl p-6 text-white shadow-xl">
           <div className="flex items-start gap-4 mb-4"><div className="bg-white/20 p-3 rounded-2xl"><Shield size={28} className="text-white" /></div><div><h2 className="font-bold text-xl mb-1">Protección total</h2><p className="text-white/90 text-sm">Tus pagos están encriptados y protegidos.</p></div></div>
           <div className="grid grid-cols-2 gap-3"><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">SSL seguro</p></div><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">Anti fraude</p></div></div>
         </div>
       </div>
 
       <div className="px-6 mb-6">
-        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Tus tarjetas</h2><p className="text-sm text-gray-500 mt-0.5">Métodos de pago guardados</p></div><button onClick={() => setOpenAdd(true)} className="text-[#10B981] text-sm font-semibold flex items-center gap-1.5 bg-green-50 px-4 py-2 rounded-full"><Plus size={16} />Agregar</button></div>
+        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Tus tarjetas</h2><p className="text-sm text-gray-500 mt-0.5">Métodos de pago guardados</p></div><button onClick={() => setOpenAdd(true)} className="text-[#0DAE79] text-sm font-semibold flex items-center gap-1.5 bg-green-50 px-4 py-2 rounded-full"><Plus size={16} />Agregar</button></div>
         <div className="space-y-3">
           {paymentMethods.map((method) => (
             <div key={method.id} className={`bg-gradient-to-br ${method.colorClass} rounded-3xl p-6 shadow-lg text-white`}>
@@ -73,7 +73,7 @@ export function Payments() {
             </select>
             <Input placeholder="Últimos 4 dígitos" value={last4} onChange={setLast4} />
             <Input placeholder="Vencimiento (MM/AA)" value={expiry} onChange={setExpiry} />
-            <button onClick={() => { if (last4.length === 4 && expiry) { addPaymentMethod({ type, last4, expiry, holderName: "GERONIMO MENDEZ", isDefault: paymentMethods.length === 0 }); setOpenAdd(false); setLast4(""); setExpiry(""); } }} className="w-full bg-[#10B981] text-white py-3 rounded-full font-semibold disabled:bg-gray-300" disabled={last4.length !== 4 || !expiry}>Guardar</button>
+            <button onClick={() => { if (last4.length === 4 && expiry) { addPaymentMethod({ type, last4, expiry, holderName: "GERONIMO MENDEZ", isDefault: paymentMethods.length === 0 }); setOpenAdd(false); setLast4(""); setExpiry(""); } }} className="w-full bg-[#0DAE79] text-white py-3 rounded-full font-semibold disabled:bg-gray-300" disabled={last4.length !== 4 || !expiry}>Guardar</button>
           </div>
         </div>
       )}

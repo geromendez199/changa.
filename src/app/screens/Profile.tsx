@@ -24,7 +24,7 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] px-6 pt-14 pb-24 rounded-b-[48px] relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 pt-14 pb-24 rounded-b-[48px] relative overflow-hidden">
         <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
 
@@ -35,7 +35,7 @@ export function Profile() {
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-[#10B981] font-bold text-3xl mb-4 shadow-2xl">{profile.avatarLetter}</div>
+            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-[#0DAE79] font-bold text-3xl mb-4 shadow-2xl">{profile.avatarLetter}</div>
             <h1 className="text-2xl font-bold text-white mb-1">{profile.name}</h1>
             <p className="text-white/80 text-sm">Miembro desde {profile.memberSince}</p>
             <div className="mt-4">{profile.verified && <Badge variant="success" icon={<Shield size={12} />}>Verificado</Badge>}</div>
@@ -47,7 +47,7 @@ export function Profile() {
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
-            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#10B981]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{jobs.filter((job) => job.postedByUserId === profile.id).length}</p><p className="text-xs text-gray-500 font-medium">Publicados</p></div>
+            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#0DAE79]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{jobs.filter((job) => job.postedByUserId === profile.id).length}</p><p className="text-xs text-gray-500 font-medium">Publicados</p></div>
             <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-blue-50 p-2 rounded-xl"><TrendingUp size={20} className="text-blue-500" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.successRate}%</p><p className="text-xs text-gray-500 font-medium">Éxito</p></div>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function Profile() {
       <div className="px-6 mb-6"><div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 border border-blue-100 flex items-center gap-4"><div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg"><Award size={24} className="text-white" /></div><div className="flex-1"><h3 className="font-bold text-[#111827] mb-0.5">Confianza de la comunidad</h3><p className="text-sm text-gray-600">{profile.trustIndicators.join(" • ")}</p></div></div></div>
 
       <div className="px-6 space-y-3 mb-6">
-        <button onClick={() => navigate("/payments")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-green-50 p-3 rounded-2xl"><CreditCard size={24} className="text-[#10B981]" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Pagos</h3><p className="text-sm text-gray-500">Métodos y movimientos</p></div><ChevronRight size={20} className="text-gray-400" /></button>
+        <button onClick={() => navigate("/payments")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-green-50 p-3 rounded-2xl"><CreditCard size={24} className="text-[#0DAE79]" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Pagos</h3><p className="text-sm text-gray-500">Métodos y movimientos</p></div><ChevronRight size={20} className="text-gray-400" /></button>
         <button onClick={() => navigate("/profile/edit")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-gray-50 p-3 rounded-2xl"><Settings size={24} className="text-gray-600" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Configuración</h3><p className="text-sm text-gray-500">Datos personales y privacidad</p></div><ChevronRight size={20} className="text-gray-400" /></button>
       </div>
 

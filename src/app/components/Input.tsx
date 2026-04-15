@@ -24,7 +24,7 @@ export function Input({ placeholder, value, onChange, icon, type = "text" }: Inp
         className={`
           w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4
           ${icon ? "pl-12" : ""}
-          focus:outline-none focus:ring-2 focus:ring-[#10B981] focus:border-transparent
+          focus:outline-none focus:ring-2 focus:ring-[#0DAE79] focus:border-transparent
           placeholder:text-gray-400 text-[#111827]
           transition-all duration-200
         `}

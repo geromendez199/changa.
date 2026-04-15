@@ -71,18 +71,18 @@ export function JobDetail() {
 
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 text-gray-500 mb-1"><MapPin size={16} className="text-[#10B981]" /><span className="text-xs font-medium">Ubicación</span></div>
+            <div className="flex items-center gap-2 text-gray-500 mb-1"><MapPin size={16} className="text-[#0DAE79]" /><span className="text-xs font-medium">Ubicación</span></div>
             <p className="font-semibold text-[#111827] text-sm">{job.location}</p>
             <p className="text-xs text-gray-500 mt-0.5">{formatDistance(job.distanceKm)} de distancia</p>
           </div>
           <div className="bg-white rounded-2xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 text-gray-500 mb-1"><Calendar size={16} className="text-[#10B981]" /><span className="text-xs font-medium">Disponibilidad</span></div>
+            <div className="flex items-center gap-2 text-gray-500 mb-1"><Calendar size={16} className="text-[#0DAE79]" /><span className="text-xs font-medium">Disponibilidad</span></div>
             <p className="font-semibold text-[#111827] text-sm">{job.availability}</p>
             <p className="text-xs text-gray-500 mt-0.5">Horario flexible</p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-[#10B981] to-[#059669] rounded-3xl p-6 mb-6 shadow-xl shadow-[#10B981]/20">
+        <div className="bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-3xl p-6 mb-6 shadow-xl shadow-[#0DAE79]/20">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/80 text-sm mb-1">Presupuesto</p>
@@ -94,7 +94,7 @@ export function JobDetail() {
         </div>
 
         <div className="bg-white rounded-3xl p-6 mb-6 border border-gray-100">
-          <h2 className="font-bold text-[#111827] mb-3 flex items-center gap-2"><div className="w-1 h-5 bg-[#10B981] rounded-full"></div>Descripción</h2>
+          <h2 className="font-bold text-[#111827] mb-3 flex items-center gap-2"><div className="w-1 h-5 bg-[#0DAE79] rounded-full"></div>Descripción</h2>
           <p className="text-gray-600 leading-relaxed">{job.description}</p>
         </div>
 
@@ -102,7 +102,7 @@ export function JobDetail() {
           <div className="bg-white rounded-3xl p-5 border border-gray-100">
             <p className="text-xs text-gray-500 uppercase tracking-wide mb-4 font-semibold">Publicado por</p>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">{publisher.avatarLetter}</div>
+              <div className="w-14 h-14 bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">{publisher.avatarLetter}</div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-[#111827]">{publisher.name}</h3>

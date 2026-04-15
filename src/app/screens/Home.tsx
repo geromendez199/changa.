@@ -48,7 +48,7 @@ export function Home() {
         <Input placeholder="Buscar servicios..." icon={<Search size={20} />} onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)} />
 
         <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
-          <MapPin size={16} className="text-[#10B981]" />
+          <MapPin size={16} className="text-[#0DAE79]" />
           <span className="font-medium">{selectedLocation || "Ubicación pendiente"}</span>
         </div>
       </div>
@@ -59,7 +59,7 @@ export function Home() {
             <p className="text-sm font-semibold text-[#111827] mb-1">Ubicación actual</p>
             <p className="text-sm text-gray-500 mb-3">Activá ubicación para mejorar resultados cercanos o cargá una zona manualmente.</p>
             <div className="flex gap-2 mb-2">
-              <button onClick={requestDeviceLocation} className="flex-1 bg-[#10B981] text-white rounded-full py-2 text-sm font-semibold flex items-center justify-center gap-2">
+              <button onClick={requestDeviceLocation} className="flex-1 bg-[#0DAE79] text-white rounded-full py-2 text-sm font-semibold flex items-center justify-center gap-2">
                 <LocateFixed size={14} /> Activar ubicación
               </button>
               <button onClick={() => navigate("/search")} className="px-4 bg-[#F8FAFC] border border-gray-200 rounded-full text-sm font-semibold text-[#111827]">Explorar</button>
@@ -76,7 +76,7 @@ export function Home() {
       <div className="px-6 py-6">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6">
           {categoryFilters.map((cat, idx) => (
-            <button key={cat} onClick={() => navigate(`/search?category=${encodeURIComponent(cat)}`)} className={`flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap transition-all duration-200 ${idx === 0 ? "bg-[#10B981] text-white shadow-lg shadow-[#10B981]/25" : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"}`}>
+            <button key={cat} onClick={() => navigate(`/search?category=${encodeURIComponent(cat)}`)} className={`flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap transition-all duration-200 ${idx === 0 ? "bg-[#0DAE79] text-white shadow-lg shadow-[#0DAE79]/25" : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"}`}>
               <span className="font-semibold text-sm">{cat}</span>
             </button>
           ))}
@@ -89,7 +89,7 @@ export function Home() {
         <div className="mb-8">
           <div className="px-6 mb-5 flex items-center justify-between">
             <div><h2 className="font-bold text-[#111827] text-lg mb-1">Destacados</h2><p className="text-sm text-gray-500">Los mejores cerca tuyo</p></div>
-            <button onClick={() => navigate("/search")} className="text-[#10B981] text-sm font-semibold hover:underline">Ver todos</button>
+            <button onClick={() => navigate("/search")} className="text-[#0DAE79] text-sm font-semibold hover:underline">Ver todos</button>
           </div>
           <div className="flex gap-4 overflow-x-auto px-6 scrollbar-hide -mx-6"><div className="w-4 flex-shrink-0"></div>{featuredJobs.map((job) => <JobCard key={job.id} id={job.id} image={job.image} title={job.title} category={job.category} price={job.priceLabel} rating={job.rating} distance={formatDistance(job.distanceKm)} urgency={formatUrgencyLabel(job.urgency)} featured />)}<div className="w-4 flex-shrink-0"></div></div>
         </div>

@@ -103,10 +103,10 @@ export function PublishJob() {
 
         <div className="space-y-2">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-[#10B981] transition-all" style={{ width: `${progressPct}%` }}></div>
+            <div className="h-full bg-[#0DAE79] transition-all" style={{ width: `${progressPct}%` }}></div>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[#10B981] font-semibold">Paso {step} de {totalSteps}</span>
+            <span className="text-[#0DAE79] font-semibold">Paso {step} de {totalSteps}</span>
             <span className="text-gray-500">{progressPct}% completado</span>
           </div>
         </div>
@@ -122,10 +122,10 @@ export function PublishJob() {
                 <button
                   key={category}
                   onClick={() => setForm((prev) => ({ ...prev, category }))}
-                  className={`rounded-3xl p-5 border text-left transition-all ${form.category === category ? "border-[#10B981] shadow-lg" : "bg-white border-gray-100"}`}
+                  className={`rounded-3xl p-5 border text-left transition-all ${form.category === category ? "border-[#0DAE79] shadow-lg" : "bg-white border-gray-100"}`}
                 >
                   <p className="font-bold text-[#111827]">{category}</p>
-                  {form.category === category && <p className="text-sm text-[#10B981] mt-1">Seleccionado</p>}
+                  {form.category === category && <p className="text-sm text-[#0DAE79] mt-1">Seleccionado</p>}
                 </button>
               ))}
             </div>
@@ -140,7 +140,7 @@ export function PublishJob() {
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Descripción detallada"
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-36 focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-36 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]"
             />
           </div>
         )}
@@ -158,7 +158,7 @@ export function PublishJob() {
                   { label: "Normal", value: "normal" },
                   { label: "Urgente", value: "urgente" },
                 ].map((item) => (
-                  <button key={item.value} onClick={() => setForm((prev) => ({ ...prev, urgency: item.value as "normal" | "urgente" }))} className={`px-4 py-2 rounded-full text-sm ${form.urgency === item.value ? "bg-[#10B981] text-white" : "bg-[#F8FAFC] border border-gray-200"}`}>
+                  <button key={item.value} onClick={() => setForm((prev) => ({ ...prev, urgency: item.value as "normal" | "urgente" }))} className={`px-4 py-2 rounded-full text-sm ${form.urgency === item.value ? "bg-[#0DAE79] text-white" : "bg-[#F8FAFC] border border-gray-200"}`}>
                     {item.label}
                   </button>
                 ))}

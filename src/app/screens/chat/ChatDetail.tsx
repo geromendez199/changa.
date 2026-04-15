@@ -51,7 +51,7 @@ export function ChatDetail() {
           const isOwn = message.senderUserId === currentUserId;
           return (
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-4 py-3 ${isOwn ? "bg-[#10B981] text-white" : "bg-white text-[#111827] border border-gray-100"}`}>
+              <div className={`max-w-[78%] rounded-2xl px-4 py-3 ${isOwn ? "bg-[#0DAE79] text-white" : "bg-white text-[#111827] border border-gray-100"}`}>
                 <p className="text-sm leading-relaxed">{message.content}</p>
                 <p className={`text-[10px] mt-1 ${isOwn ? "text-white/80" : "text-gray-400"}`}>{formatRelative(message.createdAt)}</p>
               </div>
@@ -71,7 +71,7 @@ export function ChatDetail() {
             setText("");
           }}
           disabled={!text.trim()}
-          className="bg-[#10B981] disabled:bg-gray-300 text-white p-3 rounded-full"
+          className="bg-[#0DAE79] disabled:bg-gray-300 text-white p-3 rounded-full"
         >
           <Send size={18} />
         </button>

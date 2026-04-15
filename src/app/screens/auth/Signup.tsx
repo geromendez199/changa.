@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { useAuth } from "../../../context/AuthContext";
+import { BrandLogo } from "../../components/BrandLogo";
 
 export function Signup() {
   const { signUp } = useAuth();
@@ -41,6 +42,14 @@ export function Signup() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-6 pt-16 pb-10 max-w-md mx-auto font-['Inter']">
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+        <div className="mb-5 flex justify-center">
+          <BrandLogo
+            imageClassName="h-9 w-auto object-contain"
+            fallbackClassName="text-3xl font-bold tracking-tight text-[#111827]"
+            alt="Changa"
+          />
+        </div>
+
         <h1 className="text-2xl font-bold text-[#111827] mb-1">Crear cuenta</h1>
         <p className="text-sm text-gray-500 mb-6">Empezá a usar Changa con tu email y contraseña.</p>
 
@@ -58,7 +67,7 @@ export function Signup() {
         </div>
 
         <p className="text-sm text-gray-600 text-center mt-5">
-          ¿Ya tenés cuenta? <Link to="/login" className="text-[#10B981] font-semibold">Iniciar sesión</Link>
+          ¿Ya tenés cuenta? <Link to="/login" className="text-[#0DAE79] font-semibold">Iniciar sesión</Link>
         </p>
       </div>
     </div>
