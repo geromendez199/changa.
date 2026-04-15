@@ -2,17 +2,16 @@ import { MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { useAppState } from "../hooks/useAppState";
-import { users } from "../data/mockData";
 import { formatRelative } from "../utils/format";
 
 export function Chat() {
   const navigate = useNavigate();
-  const { conversations, messages, currentUserId, jobs } = useAppState();
+  const { conversations, messages, currentUserId, jobs, profiles } = useAppState();
 
   const rows = conversations
     .map((conv) => {
       const otherUserId = conv.participantIds.find((id) => id !== currentUserId)!;
-      const otherUser = users.find((u) => u.id === otherUserId);
+      const otherUser = profiles.find((u) => u.id === otherUserId);
       const conversationMessages = messages.filter((m) => m.conversationId === conv.id);
       const lastMessage = conversationMessages[conversationMessages.length - 1];
       const unreadCount = conversationMessages.filter((m) => m.senderUserId !== currentUserId && !m.read).length;

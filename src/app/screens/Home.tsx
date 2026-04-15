@@ -1,4 +1,5 @@
 import { Search, MapPin, Bell } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { JobCard } from "../components/JobCard";
@@ -10,7 +11,11 @@ import { categoryFilters } from "../data/mockData";
 export function Home() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
-  const { jobs } = useAppState();
+  const { jobs, isLoading, errorMessage, refreshJobs } = useAppState();
+
+  useEffect(() => {
+    refreshJobs();
+  }, []);
 
   const featuredJobs = jobs.slice(0, 3);
   const nearbyJobs = [...jobs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
@@ -59,6 +64,12 @@ export function Home() {
         </div>
       </div>
 
+      {errorMessage && (
+        <div className="mx-6 mb-4 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500">
+          No pudimos conectar con Supabase. Mostramos datos de respaldo.
+        </div>
+      )}
+
       <div className="mb-8">
         <div className="px-6 mb-5 flex items-center justify-between">
           <div>
@@ -90,7 +101,7 @@ export function Home() {
       <div className="px-6">
         <div className="mb-5">
           <h2 className="font-bold text-[#111827] text-lg mb-1">Cerca de vos</h2>
-          <p className="text-sm text-gray-500">{jobs.length} trabajos disponibles</p>
+          <p className="text-sm text-gray-500">{isLoading ? "Cargando..." : `${jobs.length} trabajos disponibles`}</p>
         </div>
         <div className="space-y-3">
           {nearbyJobs.map((job) => (
@@ -108,6 +119,13 @@ export function Home() {
             />
           ))}
         </div>
+
+        {!isLoading && nearbyJobs.length === 0 && (
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center mt-4">
+            <p className="font-semibold text-[#111827] mb-1">Todavía no hay changas publicadas</p>
+            <p className="text-sm text-gray-500">Volvé en unos minutos o publicá la primera.</p>
+          </div>
+        )}
       </div>
 
       <BottomNav />

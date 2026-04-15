@@ -1,18 +1,23 @@
 import { ArrowLeft, Send } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Input } from "../../components/Input";
 import { useAppState } from "../../hooks/useAppState";
-import { users } from "../../data/mockData";
 import { formatRelative } from "../../utils/format";
 
 export function ChatDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { conversations, messages, currentUserId, sendMessage, jobs } = useAppState();
+  const { conversations, messages, currentUserId, sendMessage, jobs, profiles, refreshChatDetail } = useAppState();
   const [text, setText] = useState("");
 
   const conversation = conversations.find((item) => item.id === id);
+
+  useEffect(() => {
+    if (id) {
+      refreshChatDetail(id);
+    }
+  }, [id]);
 
   const conversationMessages = useMemo(
     () => messages.filter((msg) => msg.conversationId === id),
@@ -24,7 +29,7 @@ export function ChatDetail() {
   }
 
   const otherUserId = conversation.participantIds.find((item) => item !== currentUserId)!;
-  const otherUser = users.find((u) => u.id === otherUserId);
+  const otherUser = profiles.find((u) => u.id === otherUserId);
   const relatedJob = jobs.find((job) => job.id === conversation.jobId);
 
   return (
@@ -53,6 +58,7 @@ export function ChatDetail() {
             </div>
           );
         })}
+        {conversationMessages.length === 0 && <div className="text-center text-sm text-gray-500 py-10">No hay mensajes todavía.</div>}
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 max-w-md mx-auto flex items-center gap-3">

@@ -1,16 +1,21 @@
 import { BottomNav } from "../components/BottomNav";
 import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, Award, TrendingUp, Bell, LogOut, Pencil } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Badge } from "../components/Badge";
-import { reviews, users } from "../data/mockData";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 
 export function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
-  const { jobs } = useAppState();
+  const { jobs, profiles, reviews, refreshProfile, isLoading } = useAppState();
 
-  const myReviews = reviews.filter((review) => review.reviewedUserId === currentUser.id).slice(0, 2);
+  useEffect(() => {
+    refreshProfile(currentUser.id);
+  }, [currentUser.id]);
+
+  const profile = profiles.find((item) => item.id === currentUser.id) ?? currentUser;
+  const myReviews = reviews.filter((review) => review.reviewedUserId === profile.id).slice(0, 2);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
@@ -25,10 +30,10 @@ export function Profile() {
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-[#10B981] font-bold text-3xl mb-4 shadow-2xl">{currentUser.avatarLetter}</div>
-            <h1 className="text-2xl font-bold text-white mb-1">{currentUser.name}</h1>
-            <p className="text-white/80 text-sm">Miembro desde {currentUser.memberSince}</p>
-            <div className="mt-4">{currentUser.verified && <Badge variant="success" icon={<Shield size={12} />}>Verificado</Badge>}</div>
+            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-[#10B981] font-bold text-3xl mb-4 shadow-2xl">{profile.avatarLetter}</div>
+            <h1 className="text-2xl font-bold text-white mb-1">{profile.name}</h1>
+            <p className="text-white/80 text-sm">Miembro desde {profile.memberSince}</p>
+            <div className="mt-4">{profile.verified && <Badge variant="success" icon={<Shield size={12} />}>Verificado</Badge>}</div>
           </div>
         </div>
       </div>
@@ -36,9 +41,9 @@ export function Profile() {
       <div className="px-6 -mt-16 mb-6 relative z-10">
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
           <div className="grid grid-cols-3 gap-6">
-            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{currentUser.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
-            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#10B981]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{jobs.filter((job) => job.postedByUserId === currentUser.id).length}</p><p className="text-xs text-gray-500 font-medium">Publicados</p></div>
-            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-blue-50 p-2 rounded-xl"><TrendingUp size={20} className="text-blue-500" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{currentUser.successRate}%</p><p className="text-xs text-gray-500 font-medium">Éxito</p></div>
+            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
+            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#10B981]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{jobs.filter((job) => job.postedByUserId === profile.id).length}</p><p className="text-xs text-gray-500 font-medium">Publicados</p></div>
+            <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-blue-50 p-2 rounded-xl"><TrendingUp size={20} className="text-blue-500" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.successRate}%</p><p className="text-xs text-gray-500 font-medium">Éxito</p></div>
           </div>
         </div>
       </div>
@@ -48,7 +53,7 @@ export function Profile() {
           <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg"><Award size={24} className="text-white" /></div>
           <div className="flex-1">
             <h3 className="font-bold text-[#111827] mb-0.5">Confianza de la comunidad</h3>
-            <p className="text-sm text-gray-600">{currentUser.trustIndicators.join(" • ")}</p>
+            <p className="text-sm text-gray-600">{profile.trustIndicators.join(" • ")}</p>
           </div>
         </div>
       </div>
@@ -62,15 +67,16 @@ export function Profile() {
         <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Reseñas</h2><p className="text-sm text-gray-500">Últimas calificaciones</p></div></div>
         <div className="space-y-3">
           {myReviews.map((review) => {
-            const reviewer = users.find((u) => u.id === review.reviewerUserId);
+            const reviewer = profiles.find((u) => u.id === review.reviewerUserId);
             return (
               <div key={review.id} className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-                <div className="flex items-start justify-between mb-3"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center text-white font-bold">{reviewer?.avatarLetter}</div><div><h3 className="font-bold text-[#111827] text-sm">{reviewer?.name}</h3><div className="flex items-center gap-1 mt-0.5">{[...Array(5)].map((_, i) => <Star key={i} size={12} className={i < review.rating ? "text-[#FBBF24] fill-[#FBBF24]" : "text-gray-300"} />)}</div></div></div></div>
+                <div className="flex items-start justify-between mb-3"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center text-white font-bold">{reviewer?.avatarLetter ?? "?"}</div><div><h3 className="font-bold text-[#111827] text-sm">{reviewer?.name ?? "Usuario"}</h3><div className="flex items-center gap-1 mt-0.5">{[...Array(5)].map((_, i) => <Star key={i} size={12} className={i < review.rating ? "text-[#FBBF24] fill-[#FBBF24]" : "text-gray-300"} />)}</div></div></div></div>
                 <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
               </div>
             );
           })}
         </div>
+        {!isLoading && myReviews.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no tenés reseñas.</div>}
       </div>
 
       <div className="px-6 mt-8 mb-4"><button className="w-full text-red-600 font-semibold text-sm py-3 flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors"><LogOut size={18} />Cerrar sesión</button></div>

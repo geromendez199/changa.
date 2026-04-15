@@ -1,17 +1,33 @@
 import { ArrowLeft, MapPin, Calendar, Star, Heart, Shield, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { useAppState } from "../hooks/useAppState";
-import { users } from "../data/mockData";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 
 export function JobDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { jobs } = useAppState();
+  const { loadJobById, profiles } = useAppState();
+  const [job, setJob] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const job = jobs.find((item) => item.id === id);
+  useEffect(() => {
+    async function load() {
+      if (!id) return;
+      setIsLoading(true);
+      const data = await loadJobById(id);
+      setJob(data);
+      setIsLoading(false);
+    }
+
+    load();
+  }, [id]);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">Cargando trabajo...</div>;
+  }
 
   if (!job) {
     return (
@@ -28,7 +44,7 @@ export function JobDetail() {
     );
   }
 
-  const publisher = users.find((user) => user.id === job.postedByUserId);
+  const publisher = profiles.find((user) => user.id === job.postedByUserId);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-32 max-w-md mx-auto font-['Inter']">

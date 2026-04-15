@@ -1,5 +1,5 @@
 import { ArrowLeft, MapPin, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { JobCard } from "../components/JobCard";
@@ -7,10 +7,11 @@ import { Input } from "../components/Input";
 import { categoryFilters } from "../data/mockData";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
-import { JobSort, searchJobs } from "../utils/search";
+import { JobSort, searchJobs as searchJobsLocal } from "../utils/search";
 
-const sortingOptions: { label: string; value: JobSort }[] = [
+const sortingOptions: { label: string; value: JobSort | "newest" }[] = [
   { label: "Distancia", value: "distance" },
+  { label: "Más recientes", value: "newest" },
   { label: "Precio más bajo", value: "precio_asc" },
   { label: "Precio más alto", value: "precio_desc" },
   { label: "Mejor calificación", value: "rating" },
@@ -18,18 +19,27 @@ const sortingOptions: { label: string; value: JobSort }[] = [
 
 export function SearchResults() {
   const navigate = useNavigate();
-  const { jobs } = useAppState();
+  const { jobs, refreshJobs, errorMessage, isLoading } = useAppState();
   const [params, setParams] = useSearchParams();
 
   const [query, setQuery] = useState(params.get("q") || "");
   const [category, setCategory] = useState(params.get("category") || "Todos");
-  const [sortBy, setSortBy] = useState<JobSort>("distance");
+  const [sortBy, setSortBy] = useState<JobSort | "newest">("distance");
   const [showFilters, setShowFilters] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
   const [prioritizeDistance, setPrioritizeDistance] = useState(true);
 
+  useEffect(() => {
+    refreshJobs({
+      query,
+      category,
+      onlyUrgent,
+      sortBy: sortBy === "newest" ? "newest" : prioritizeDistance ? "distance" : "newest",
+    });
+  }, [category, onlyUrgent, prioritizeDistance, query, sortBy]);
+
   const filteredJobs = useMemo(
-    () => searchJobs(jobs, { query, category, sortBy, onlyUrgent, prioritizeDistance }),
+    () => searchJobsLocal(jobs, { query, category, sortBy: sortBy === "newest" ? "distance" : sortBy, onlyUrgent, prioritizeDistance }),
     [category, jobs, onlyUrgent, prioritizeDistance, query, sortBy],
   );
 
@@ -81,7 +91,7 @@ export function SearchResults() {
             </label>
             <label className="flex items-center justify-between gap-3">
               <span>Ordenar por</span>
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as JobSort)} className="bg-white border border-gray-200 rounded-xl px-3 py-1.5">
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as JobSort | "newest")} className="bg-white border border-gray-200 rounded-xl px-3 py-1.5">
                 {sortingOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </label>
@@ -108,11 +118,13 @@ export function SearchResults() {
       <div className="px-6 py-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-[#111827] text-lg">{filteredJobs.length} resultados</h2>
+            <h2 className="font-bold text-[#111827] text-lg">{isLoading ? "Buscando..." : `${filteredJobs.length} resultados`}</h2>
             <p className="text-sm text-gray-500 mt-0.5">Ordenados por {sortingOptions.find((s) => s.value === sortBy)?.label.toLowerCase()}</p>
           </div>
         </div>
       </div>
+
+      {errorMessage && <div className="mx-6 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500 mb-4">Supabase no está disponible. Mostramos resultados de respaldo.</div>}
 
       <div className="px-6 space-y-3 pb-4">
         {filteredJobs.map((job) => (
@@ -131,7 +143,7 @@ export function SearchResults() {
         ))}
       </div>
 
-      {filteredJobs.length === 0 && (
+      {filteredJobs.length === 0 && !isLoading && (
         <div className="mx-6 bg-white rounded-3xl border border-gray-100 p-6 text-center">
           <p className="font-semibold text-[#111827] mb-1">No encontramos changas para tu búsqueda</p>
           <p className="text-sm text-gray-500">Probá con otra categoría o quitá algunos filtros.</p>
