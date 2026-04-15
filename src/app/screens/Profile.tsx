@@ -6,6 +6,7 @@ import { Badge } from "../components/Badge";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyStateCard } from "../components/EmptyStateCard";
+import { BrandLogo } from "../components/BrandLogo";
 
 export function Profile() {
   const navigate = useNavigate();
@@ -14,8 +15,8 @@ export function Profile() {
   const { signOut } = useAuth();
 
   useEffect(() => {
-    if (currentUser?.id) refreshProfile(currentUser.id);
-  }, [currentUser?.id]);
+    if (currentUser?.id) void refreshProfile(currentUser.id);
+  }, [currentUser?.id, refreshProfile]);
 
   if (!currentUser) return null;
 
@@ -31,6 +32,7 @@ export function Profile() {
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-8">
             <button onClick={() => navigate("/profile/edit")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Pencil size={20} className="text-white" /></button>
+            <BrandLogo imageClassName="h-6 w-auto object-contain opacity-95" fallbackClassName="text-white text-lg font-bold" alt="Changa" />
             <button onClick={() => navigate("/notifications")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
           </div>
 

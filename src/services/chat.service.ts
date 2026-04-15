@@ -1,10 +1,11 @@
 import { supabase } from "../lib/supabase";
 import { Conversation, Message } from "../types/domain";
 import { ConversationsRow, MessagesRow, mapConversationRow, mapMessageRow } from "../types/supabase";
-import { normalizeError, ServiceResult, shouldUseFallback } from "./service.utils";
+import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
 
 export async function getConversationList(currentUserId: string): Promise<ServiceResult<Conversation[]>> {
-  if (shouldUseFallback()) return { data: [], source: "fallback" };
+  if (!isNonEmptyString(currentUserId)) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult([], "fallback");
 
   try {
     const { data, error } = await supabase!
@@ -14,29 +15,47 @@ export async function getConversationList(currentUserId: string): Promise<Servic
       .order("last_message_at", { ascending: false });
 
     if (error) throw error;
-    return { data: (data as ConversationsRow[]).map(mapConversationRow), source: "supabase" };
+
+    const rows = toSafeArray<Partial<ConversationsRow>>(data)
+      .map(mapConversationRow)
+      .filter((conversation) => isNonEmptyString(conversation.id));
+
+    return successResult(rows);
   } catch (error) {
-    return { data: [], source: "fallback", error: normalizeError(error) };
+    return failureResult([], normalizeError(error, "No pudimos cargar tus conversaciones."));
   }
 }
 
 export async function getConversationMessages(conversationId: string): Promise<ServiceResult<Message[]>> {
-  if (shouldUseFallback()) return { data: [], source: "fallback" };
+  if (!isNonEmptyString(conversationId)) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult([], "fallback");
 
   try {
-    const { data, error } = await supabase!.from("messages").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
+    const { data, error } = await supabase!
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+
     if (error) throw error;
 
-    return { data: (data as MessagesRow[]).map(mapMessageRow), source: "supabase" };
+    const messages = toSafeArray<Partial<MessagesRow>>(data)
+      .map(mapMessageRow)
+      .filter((message) => isNonEmptyString(message.id));
+
+    return successResult(messages);
   } catch (error) {
-    return { data: [], source: "fallback", error: normalizeError(error) };
+    return failureResult([], normalizeError(error, "No pudimos cargar los mensajes."));
   }
 }
 
 export async function sendChatMessage(input: { conversationId: string; senderUserId: string; content: string }): Promise<ServiceResult<Message | null>> {
   const trimmed = input.content.trim();
-  if (!trimmed) return { data: null, source: "fallback", error: "El mensaje no puede estar vacío." };
-  if (shouldUseFallback()) return { data: null, source: "fallback", error: "Configurá Supabase para enviar mensajes reales." };
+  if (!trimmed) return failureResult(null, "El mensaje no puede estar vacío.");
+  if (!isNonEmptyString(input.conversationId) || !isNonEmptyString(input.senderUserId)) {
+    return failureResult(null, "No pudimos enviar el mensaje. Intentá nuevamente.");
+  }
+  if (shouldUseFallback()) return failureResult(null, "Configurá Supabase para enviar mensajes reales.");
 
   try {
     const { data, error } = await supabase!
@@ -47,11 +66,17 @@ export async function sendChatMessage(input: { conversationId: string; senderUse
         content: trimmed,
       })
       .select("*")
-      .single();
+      .single<MessagesRow>();
 
     if (error) throw error;
-    return { data: mapMessageRow(data as MessagesRow), source: "supabase" };
+
+    await supabase!
+      .from("conversations")
+      .update({ last_message_at: new Date().toISOString() })
+      .eq("id", input.conversationId);
+
+    return successResult(mapMessageRow(data));
   } catch (error) {
-    return { data: null, source: "fallback", error: normalizeError(error) };
+    return failureResult(null, normalizeError(error, "No pudimos enviar tu mensaje."));
   }
 }

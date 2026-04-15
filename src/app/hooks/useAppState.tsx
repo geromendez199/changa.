@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useGeolocation } from "../../hooks/useGeolocation";
 import { getConversationList, getConversationMessages, sendChatMessage } from "../../services/chat.service";
@@ -6,6 +6,7 @@ import { getPaymentMethods, getTransactions } from "../../services/payments.serv
 import { getProfileBundle, getPublicProfiles, updateProfileLocation } from "../../services/profiles.service";
 import { createJob, getFeaturedJobs, getJobById, getMyJobs, searchJobs, SearchJobsParams } from "../../services/jobs.service";
 import { getMyApplications } from "../../services/applications.service";
+import { getMyNotifications } from "../../services/notifications.service";
 import { Application, Conversation, Job, Message, Notification, PaymentMethod, Profile, Review, Transaction } from "../types/domain";
 
 interface NewJobInput {
@@ -52,6 +53,8 @@ interface AppStateValue {
 
 const AppStateContext = createContext<AppStateValue | null>(null);
 
+const DEFAULT_LOCATION = "Ubicación pendiente";
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const { userId } = useAuth();
   const { coords, status, errorMessage: locationError, requestLocation } = useGeolocation();
@@ -65,101 +68,135 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [notifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("supabase");
-  const [selectedLocation, setSelectedLocation] = useState("Ubicación pendiente");
+  const [selectedLocation, setSelectedLocation] = useState(DEFAULT_LOCATION);
 
-  const refreshJobs = async (params: SearchJobsParams = {}) => {
+  const pushError = useCallback((message?: string) => {
+    if (message) setErrorMessage(message);
+  }, []);
+
+  const refreshJobs = useCallback(async (params: SearchJobsParams = {}) => {
     const result = Object.keys(params).length > 0 ? await searchJobs(params) : await getFeaturedJobs();
     setJobs(result.data);
     setDataSource(result.source);
-    if (result.error) setErrorMessage(result.error);
-  };
+    pushError(result.error);
+  }, [pushError]);
 
-  const loadJobById = async (id: string) => {
+  const loadJobById = useCallback(async (id: string) => {
     const result = await getJobById(id);
-    if (result.error) setErrorMessage(result.error);
+    pushError(result.error);
     return result.data;
-  };
+  }, [pushError]);
 
-  const refreshProfile = async (profileUserId: string) => {
+  const refreshProfile = useCallback(async (profileUserId: string) => {
     const profileResult = await getProfileBundle(profileUserId);
-    if (profileResult.error) setErrorMessage(profileResult.error);
+    pushError(profileResult.error);
 
-    if (profileResult.data) {
-      setProfiles((prev) => {
-        const rest = prev.filter((profile) => profile.id !== profileResult.data!.profile.id);
-        return [profileResult.data!.profile, ...rest];
-      });
-      setReviews(profileResult.data.reviews);
+    if (!profileResult.data) return;
+
+    setProfiles((prev) => {
+      const rest = prev.filter((profile) => profile.id !== profileResult.data!.profile.id);
+      return [profileResult.data!.profile, ...rest];
+    });
+    setReviews(profileResult.data.reviews);
+
+    if (profileResult.data.profile.location) {
       setSelectedLocation(profileResult.data.profile.location);
-      setDataSource(profileResult.source);
     }
-  };
 
-  const refreshChatDetail = async (conversationId: string) => {
+    setDataSource(profileResult.source);
+  }, [pushError]);
+
+  const refreshChatDetail = useCallback(async (conversationId: string) => {
     const result = await getConversationMessages(conversationId);
     setMessages((prev) => {
       const withoutConversation = prev.filter((message) => message.conversationId !== conversationId);
       return [...withoutConversation, ...result.data];
     });
-    if (result.error) setErrorMessage(result.error);
-  };
+    pushError(result.error);
+  }, [pushError]);
 
-  useEffect(() => {
-    async function bootstrap() {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const loadBaseData = useCallback(async (currentUserId: string | null) => {
+    setIsLoading(true);
+    setErrorMessage(null);
 
+    try {
       const jobsResult = await getFeaturedJobs();
-      setJobs(jobsResult.data);
-      if (jobsResult.error) setErrorMessage(jobsResult.error);
-
       const profilesResult = await getPublicProfiles();
+
+      setJobs(jobsResult.data);
       setProfiles(profilesResult.data);
+      setDataSource(jobsResult.source);
 
-      if (userId) {
-        const [conversationsResult, methodsResult, txResult, currentProfileResult, myJobsResult, applicationsResult] = await Promise.all([
-          getConversationList(userId),
-          getPaymentMethods(userId),
-          getTransactions(userId),
-          getProfileBundle(userId),
-          getMyJobs(userId),
-          getMyApplications(userId),
-        ]);
+      const firstBaseError = jobsResult.error ?? profilesResult.error;
+      if (firstBaseError) setErrorMessage(firstBaseError);
 
-        setConversations(conversationsResult.data);
-        setPaymentMethods(methodsResult.data);
-        setTransactions(txResult.data);
-        setReviews(currentProfileResult.data?.reviews ?? []);
-        setMyJobs(myJobsResult.data);
-        setApplications(applicationsResult.data);
-
-        if (currentProfileResult.data?.profile.location) {
-          setSelectedLocation(currentProfileResult.data.profile.location);
-        }
-
-        const firstError = [jobsResult, conversationsResult, methodsResult, txResult, profilesResult, currentProfileResult, myJobsResult, applicationsResult].find((result) => result.error)?.error;
-        if (firstError) setErrorMessage(firstError);
-      } else {
+      if (!currentUserId) {
         setConversations([]);
+        setMessages([]);
         setPaymentMethods([]);
         setTransactions([]);
         setReviews([]);
         setMyJobs([]);
         setApplications([]);
+        setNotifications([]);
+        setSelectedLocation(DEFAULT_LOCATION);
+        return;
       }
 
-      setDataSource(jobsResult.source);
+      const [
+        conversationsResult,
+        methodsResult,
+        txResult,
+        currentProfileResult,
+        myJobsResult,
+        applicationsResult,
+        notificationsResult,
+      ] = await Promise.all([
+        getConversationList(currentUserId),
+        getPaymentMethods(currentUserId),
+        getTransactions(currentUserId),
+        getProfileBundle(currentUserId),
+        getMyJobs(currentUserId),
+        getMyApplications(currentUserId),
+        getMyNotifications(currentUserId),
+      ]);
+
+      setConversations(conversationsResult.data);
+      setPaymentMethods(methodsResult.data);
+      setTransactions(txResult.data);
+      setReviews(currentProfileResult.data?.reviews ?? []);
+      setMyJobs(myJobsResult.data);
+      setApplications(applicationsResult.data);
+      setNotifications(notificationsResult.data);
+
+      if (currentProfileResult.data?.profile.location) {
+        setSelectedLocation(currentProfileResult.data.profile.location);
+      }
+
+      const firstAuthError =
+        conversationsResult.error ??
+        methodsResult.error ??
+        txResult.error ??
+        currentProfileResult.error ??
+        myJobsResult.error ??
+        applicationsResult.error ??
+        notificationsResult.error;
+
+      if (firstAuthError) setErrorMessage(firstAuthError);
+    } finally {
       setIsLoading(false);
     }
+  }, []);
 
-    bootstrap();
-  }, [userId]);
+  useEffect(() => {
+    void loadBaseData(userId);
+  }, [loadBaseData, userId]);
 
-  const addPublishedJob = async (input: NewJobInput) => {
+  const addPublishedJob = useCallback(async (input: NewJobInput) => {
     if (!userId) {
       setErrorMessage("Necesitás iniciar sesión para publicar.");
       return null;
@@ -167,36 +204,45 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     const createdResult = await createJob({ ...input, postedByUserId: userId });
     if (!createdResult.data) {
-      if (createdResult.error) setErrorMessage(createdResult.error);
+      pushError(createdResult.error ?? "No pudimos publicar tu changa.");
       return null;
     }
 
-    setJobs((prev) => [createdResult.data!, ...prev]);
-    setMyJobs((prev) => [createdResult.data!, ...prev]);
+    setJobs((prev) => {
+      const next = [createdResult.data!, ...prev.filter((job) => job.id !== createdResult.data!.id)];
+      return next;
+    });
+    setMyJobs((prev) => [createdResult.data!, ...prev.filter((job) => job.id !== createdResult.data!.id)]);
     return createdResult.data;
-  };
+  }, [pushError, userId]);
 
-  const updateApplicationStatus = (applicationId: string, status: Application["status"]) => {
+  const updateApplicationStatus = useCallback((applicationId: string, status: Application["status"]) => {
     setApplications((prev) => prev.map((app) => (app.id === applicationId ? { ...app, status } : app)));
-  };
+  }, []);
 
-  const sendMessage = async (conversationId: string, content: string) => {
-    if (!userId) return;
+  const sendMessage = useCallback(async (conversationId: string, content: string) => {
+    if (!userId) {
+      setErrorMessage("Necesitás iniciar sesión para enviar mensajes.");
+      return;
+    }
 
     const result = await sendChatMessage({ conversationId, senderUserId: userId, content });
-    if (!result.data) return;
+    if (!result.data) {
+      pushError(result.error);
+      return;
+    }
 
     setMessages((prev) => [...prev, result.data!]);
     setConversations((prev) =>
       prev.map((conversation) =>
-        conversation.id === conversationId ? { ...conversation, lastMessageAt: result.data!.createdAt } : conversation,
+        conversation.id === conversationId
+          ? { ...conversation, lastMessageAt: result.data!.createdAt }
+          : conversation,
       ),
     );
+  }, [pushError, userId]);
 
-    if (result.error) setErrorMessage(result.error);
-  };
-
-  const addPaymentMethod = (method: Omit<PaymentMethod, "id" | "colorClass">) => {
+  const addPaymentMethod = useCallback((method: Omit<PaymentMethod, "id" | "colorClass">) => {
     const colors = ["from-indigo-500 to-indigo-600", "from-emerald-500 to-emerald-600", "from-rose-500 to-rose-600"];
     const newMethod: PaymentMethod = {
       ...method,
@@ -204,19 +250,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       colorClass: colors[paymentMethods.length % colors.length],
     };
 
-    setPaymentMethods((prev) => [newMethod, ...prev.map((item) => ({ ...item, isDefault: method.isDefault ? false : item.isDefault }))]);
-  };
+    setPaymentMethods((prev) => [
+      newMethod,
+      ...prev.map((item) => ({ ...item, isDefault: method.isDefault ? false : item.isDefault })),
+    ]);
+  }, [paymentMethods.length]);
 
-  const setManualLocation = async (location: string) => {
-    setSelectedLocation(location);
-    if (userId) {
-      const result = await updateProfileLocation(userId, location);
-      if (result.error) setErrorMessage(result.error);
-      if (result.data) {
-        setProfiles((prev) => [result.data!, ...prev.filter((profile) => profile.id !== result.data!.id)]);
-      }
+  const setManualLocation = useCallback(async (location: string) => {
+    const trimmedLocation = location.trim();
+    if (!trimmedLocation) {
+      setErrorMessage("Ingresá una ubicación válida.");
+      return;
     }
-  };
+
+    setSelectedLocation(trimmedLocation);
+
+    if (!userId) return;
+
+    const result = await updateProfileLocation(userId, trimmedLocation);
+    pushError(result.error);
+
+    if (result.data) {
+      setProfiles((prev) => [result.data!, ...prev.filter((profile) => profile.id !== result.data!.id)]);
+    }
+  }, [pushError, userId]);
 
   const value = useMemo(
     () => ({
@@ -249,7 +306,36 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       refreshChatDetail,
     }),
-    [applications, conversations, coords, dataSource, errorMessage, isLoading, jobs, locationError, messages, myJobs, notifications, paymentMethods, profiles, requestLocation, reviews, selectedLocation, status, transactions, userId],
+    [
+      userId,
+      jobs,
+      myJobs,
+      applications,
+      conversations,
+      messages,
+      paymentMethods,
+      transactions,
+      profiles,
+      reviews,
+      notifications,
+      dataSource,
+      isLoading,
+      errorMessage,
+      selectedLocation,
+      coords,
+      status,
+      locationError,
+      requestLocation,
+      setManualLocation,
+      addPublishedJob,
+      updateApplicationStatus,
+      sendMessage,
+      addPaymentMethod,
+      refreshJobs,
+      loadJobById,
+      refreshProfile,
+      refreshChatDetail,
+    ],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

@@ -15,9 +15,9 @@ export function ChatDetail() {
 
   useEffect(() => {
     if (id) {
-      refreshChatDetail(id);
+      void refreshChatDetail(id);
     }
-  }, [id]);
+  }, [id, refreshChatDetail]);
 
   const conversationMessages = useMemo(
     () => messages.filter((msg) => msg.conversationId === id),
@@ -25,7 +25,12 @@ export function ChatDetail() {
   );
 
   if (!conversation) {
-    return <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto">Conversación no encontrada.</div>;
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto">
+        <p className="text-sm text-gray-500">No pudimos cargar esta conversación.</p>
+        <button onClick={() => navigate("/chat")} className="mt-3 text-[#0DAE79] font-semibold">Volver a mensajes</button>
+      </div>
+    );
   }
 
   const otherUserId = conversation.participantIds.find((item) => item !== currentUserId)!;
@@ -66,8 +71,8 @@ export function ChatDetail() {
           <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} />
         </div>
         <button
-          onClick={() => {
-            sendMessage(conversation.id, text);
+          onClick={async () => {
+            await sendMessage(conversation.id, text);
             setText("");
           }}
           disabled={!text.trim()}

@@ -21,12 +21,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    getCurrentSession().then((currentSession) => {
-      if (mounted) {
-        setSession(currentSession);
-        setIsLoading(false);
-      }
-    });
+    const bootstrap = async () => {
+      const currentSession = await getCurrentSession();
+      if (!mounted) return;
+      setSession(currentSession);
+      setIsLoading(false);
+    };
+
+    void bootstrap();
 
     const subscription = onAuthStateChange(async (_event, nextSession) => {
       setSession(nextSession);
@@ -51,11 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await signUpWithEmail(email, password);
         if (result.ok) {
           const nextSession = await getCurrentSession();
+          setSession(nextSession);
           if (nextSession?.user) await ensureProfileForUser(nextSession.user);
         }
         return result;
       },
-      signOut: signOutUser,
+      signOut: async () => {
+        const result = await signOutUser();
+        if (result.ok) {
+          setSession(null);
+        }
+        return result;
+      },
     }),
     [isLoading, session],
   );

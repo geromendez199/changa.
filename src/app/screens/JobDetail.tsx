@@ -5,12 +5,13 @@ import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
+import { Job } from "../types/domain";
 
 export function JobDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { loadJobById, profiles } = useAppState();
-  const [job, setJob] = useState<any>(null);
+  const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +39,10 @@ export function JobDetail() {
         <div className="bg-white rounded-3xl border border-gray-100 p-8 mt-8 text-center">
           <h1 className="text-xl font-bold text-[#111827] mb-2">Trabajo no encontrado</h1>
           <p className="text-sm text-gray-500 mb-6">Esta changa no existe o fue eliminada.</p>
-          <Button onClick={() => navigate("/search")} fullWidth>Ver otras changas</Button>
+          <div className="space-y-2">
+            <Button onClick={() => navigate("/search")} fullWidth>Ver otras changas</Button>
+            <button onClick={() => id && void loadJobById(id).then(setJob)} className="w-full border border-gray-200 rounded-full py-3 text-sm font-semibold text-[#111827]">Intentá nuevamente</button>
+          </div>
         </div>
       </div>
     );

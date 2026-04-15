@@ -26,8 +26,8 @@ export function SearchResults() {
   const [onlyUrgent, setOnlyUrgent] = useState(false);
 
   useEffect(() => {
-    refreshJobs({ query, category, onlyUrgent, sortBy });
-  }, [category, onlyUrgent, query, sortBy]);
+    void refreshJobs({ query, category, onlyUrgent, sortBy });
+  }, [category, onlyUrgent, query, refreshJobs, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">

@@ -1,10 +1,11 @@
 import { supabase } from "../lib/supabase";
 import { Application } from "../types/domain";
 import { ApplicationsRow, mapApplicationRow } from "../types/supabase";
-import { normalizeError, ServiceResult, shouldUseFallback } from "./service.utils";
+import { failureResult, isNonEmptyString, normalizeError, ServiceResult, shouldUseFallback, successResult, toSafeArray } from "./service.utils";
 
 export async function getMyApplications(userId: string): Promise<ServiceResult<Application[]>> {
-  if (shouldUseFallback()) return { data: [], source: "fallback" };
+  if (!isNonEmptyString(userId)) return successResult([], "fallback");
+  if (shouldUseFallback()) return successResult([], "fallback");
 
   try {
     const { data, error } = await supabase!
@@ -14,8 +15,13 @@ export async function getMyApplications(userId: string): Promise<ServiceResult<A
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return { data: (data as ApplicationsRow[]).map(mapApplicationRow), source: "supabase" };
+
+    return successResult(
+      toSafeArray<Partial<ApplicationsRow>>(data)
+        .map(mapApplicationRow)
+        .filter((application) => isNonEmptyString(application.id)),
+    );
   } catch (error) {
-    return { data: [], source: "fallback", error: normalizeError(error) };
+    return failureResult([], normalizeError(error, "No pudimos cargar tus postulaciones."));
   }
 }

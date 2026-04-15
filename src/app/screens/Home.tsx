@@ -8,6 +8,7 @@ import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { categoryFilters } from "../constants/catalog";
 import { EmptyStateCard } from "../components/EmptyStateCard";
+import { BrandLogo } from "../components/BrandLogo";
 
 export function Home() {
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ export function Home() {
   const [manualLocation, setManualLocationText] = useState("");
 
   useEffect(() => {
-    refreshJobs();
-  }, []);
+    void refreshJobs();
+  }, [refreshJobs]);
 
   const featuredJobs = jobs.slice(0, 3);
   const nearbyJobs = [...jobs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
@@ -37,8 +38,8 @@ export function Home() {
       <div className="bg-white px-6 pt-14 pb-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex-1">
-            <p className="text-sm text-gray-500 mb-1">Bienvenido</p>
-            <h1 className="text-2xl font-bold text-[#111827]">Hola{currentUserId ? " 👋" : ""}</h1>
+            <BrandLogo imageClassName="h-7 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
+            <p className="text-sm text-gray-500 mt-2">Bienvenido{currentUserId ? " 👋" : ""}</p>
           </div>
           <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="relative p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
             <Bell size={20} className="text-gray-600" />
@@ -83,7 +84,12 @@ export function Home() {
         </div>
       </div>
 
-      {errorMessage && <div className="mx-6 mb-4 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500">{errorMessage}</div>}
+      {errorMessage && (
+        <div className="mx-6 mb-4 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500">
+          <p>{errorMessage || "No pudimos cargar tus datos."}</p>
+          <button onClick={() => void refreshJobs()} className="text-[#0DAE79] font-semibold mt-2">Intentá nuevamente</button>
+        </div>
+      )}
 
       {featuredJobs.length > 0 && (
         <div className="mb-8">
@@ -98,7 +104,7 @@ export function Home() {
       <div className="px-6">
         <div className="mb-5">
           <h2 className="font-bold text-[#111827] text-lg mb-1">Cerca de vos</h2>
-          <p className="text-sm text-gray-500">{isLoading ? "Cargando..." : `${jobs.length} trabajos disponibles`}</p>
+          <p className="text-sm text-gray-500">{isLoading ? "Cargando..." : jobs.length > 0 ? `${jobs.length} trabajos disponibles` : "Todavía no hay trabajos publicados"}</p>
         </div>
 
         {nearbyJobs.length > 0 ? (

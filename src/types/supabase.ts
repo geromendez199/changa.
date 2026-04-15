@@ -1,4 +1,5 @@
-import { Application, Conversation, Job, Message, PaymentMethod, Profile, Review, Transaction } from "./domain";
+import { Application, Conversation, Job, Message, Notification, PaymentMethod, Profile, Review, Transaction } from "./domain";
+import { isNonEmptyString, toSafeArray, toSafeNumber } from "../services/service.utils";
 
 export interface ProfilesRow {
   id: string;
@@ -71,6 +72,16 @@ export interface ReviewsRow {
   created_at: string;
 }
 
+export interface NotificationsRow {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  is_read: boolean;
+  type: Notification["type"];
+  created_at: string;
+}
+
 export interface PaymentMethodsRow {
   id: string;
   user_id: string;
@@ -92,94 +103,125 @@ export interface TransactionsRow {
   created_at: string;
 }
 
-export const mapProfileRow = (row: ProfilesRow): Profile => ({
-  id: row.id,
-  name: row.full_name,
-  fullName: row.full_name,
-  avatarLetter: row.avatar_letter,
-  location: row.location,
-  memberSince: row.member_since,
-  verified: row.verified,
-  rating: row.rating,
-  totalReviews: row.total_reviews,
-  completedJobs: row.completed_jobs,
-  successRate: row.success_rate,
-  bio: row.bio ?? undefined,
-  trustIndicators: row.trust_indicators,
-  createdAt: row.created_at,
+const safeDate = (value: unknown) => (isNonEmptyString(value) ? value : new Date().toISOString());
+
+export const mapProfileRow = (row: Partial<ProfilesRow>): Profile => {
+  const fullName = isNonEmptyString(row.full_name) ? row.full_name : "Usuario";
+  const avatarLetter = isNonEmptyString(row.avatar_letter)
+    ? row.avatar_letter
+    : fullName.charAt(0).toUpperCase() || "U";
+
+  return {
+    id: isNonEmptyString(row.id) ? row.id : "",
+    name: fullName,
+    fullName,
+    avatarLetter,
+    location: isNonEmptyString(row.location) ? row.location : "Ubicación pendiente",
+    memberSince: isNonEmptyString(row.member_since) ? row.member_since : "Reciente",
+    verified: Boolean(row.verified),
+    rating: Number(toSafeNumber(row.rating, 0).toFixed(1)),
+    totalReviews: Math.max(0, Math.round(toSafeNumber(row.total_reviews, 0))),
+    completedJobs: Math.max(0, Math.round(toSafeNumber(row.completed_jobs, 0))),
+    successRate: Math.min(100, Math.max(0, Math.round(toSafeNumber(row.success_rate, 0)))),
+    bio: isNonEmptyString(row.bio) ? row.bio : undefined,
+    trustIndicators: toSafeArray<string>(row.trust_indicators).filter(isNonEmptyString),
+    createdAt: safeDate(row.created_at),
+  };
+};
+
+export const mapJobRow = (row: Partial<JobsRow>): Job => {
+  const priceValue = Math.max(0, Math.round(toSafeNumber(row.price_value, 0)));
+  const distanceKm = Math.max(0, toSafeNumber(row.distance_km, 0));
+
+  return {
+    id: isNonEmptyString(row.id) ? row.id : "",
+    postedByUserId: isNonEmptyString(row.posted_by_user_id) ? row.posted_by_user_id : "",
+    title: isNonEmptyString(row.title) ? row.title : "Trabajo sin título",
+    description: isNonEmptyString(row.description) ? row.description : "Sin descripción disponible.",
+    category: row.category ?? "Otros",
+    priceValue,
+    priceLabel: `$${priceValue.toLocaleString("es-AR")}`,
+    rating: Number(toSafeNumber(row.rating, 0).toFixed(1)),
+    distanceKm,
+    location: isNonEmptyString(row.location) ? row.location : "Ubicación sin definir",
+    availability: isNonEmptyString(row.availability) ? row.availability : "A coordinar",
+    urgency: row.urgency === "urgente" ? "urgente" : "normal",
+    image:
+      isNonEmptyString(row.image)
+        ? row.image
+        : "https://images.unsplash.com/photo-1556911220-bff31c812dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    postedAt: safeDate(row.posted_at),
+    status: row.status ?? "publicado",
+  };
+};
+
+export const mapApplicationRow = (row: Partial<ApplicationsRow>): Application => ({
+  id: isNonEmptyString(row.id) ? row.id : "",
+  jobId: isNonEmptyString(row.job_id) ? row.job_id : "",
+  applicantUserId: isNonEmptyString(row.applicant_user_id) ? row.applicant_user_id : "",
+  coverMessage: isNonEmptyString(row.cover_message) ? row.cover_message : "",
+  proposedAmount: Math.max(0, Math.round(toSafeNumber(row.proposed_amount, 0))),
+  status: row.status ?? "enviada",
+  createdAt: safeDate(row.created_at),
 });
 
-export const mapJobRow = (row: JobsRow): Job => ({
-  id: row.id,
-  postedByUserId: row.posted_by_user_id,
-  title: row.title,
-  description: row.description,
-  category: row.category,
-  priceValue: row.price_value,
-  priceLabel: `$${row.price_value.toLocaleString("es-AR")}`,
-  rating: row.rating,
-  distanceKm: row.distance_km,
-  location: row.location,
-  availability: row.availability,
-  urgency: row.urgency,
-  image: row.image,
-  postedAt: row.posted_at,
-  status: row.status,
+export const mapConversationRow = (row: Partial<ConversationsRow>): Conversation => ({
+  id: isNonEmptyString(row.id) ? row.id : "",
+  participantIds: [isNonEmptyString(row.participant_1_id) ? row.participant_1_id : "", isNonEmptyString(row.participant_2_id) ? row.participant_2_id : ""],
+  jobId: isNonEmptyString(row.job_id) ? row.job_id : "",
+  lastMessageAt: safeDate(row.last_message_at),
 });
 
-export const mapApplicationRow = (row: ApplicationsRow): Application => ({
-  id: row.id,
-  jobId: row.job_id,
-  applicantUserId: row.applicant_user_id,
-  coverMessage: row.cover_message,
-  proposedAmount: row.proposed_amount,
-  status: row.status,
-  createdAt: row.created_at,
+export const mapMessageRow = (row: Partial<MessagesRow>): Message => ({
+  id: isNonEmptyString(row.id) ? row.id : "",
+  conversationId: isNonEmptyString(row.conversation_id) ? row.conversation_id : "",
+  senderUserId: isNonEmptyString(row.sender_user_id) ? row.sender_user_id : "",
+  content: isNonEmptyString(row.content) ? row.content : "",
+  read: Boolean(row.is_read),
+  createdAt: safeDate(row.created_at),
 });
 
-export const mapConversationRow = (row: ConversationsRow): Conversation => ({
-  id: row.id,
-  participantIds: [row.participant_1_id, row.participant_2_id],
-  jobId: row.job_id,
-  lastMessageAt: row.last_message_at,
+export const mapReviewRow = (row: Partial<ReviewsRow>): Review => ({
+  id: isNonEmptyString(row.id) ? row.id : "",
+  reviewerUserId: isNonEmptyString(row.reviewer_user_id) ? row.reviewer_user_id : "",
+  reviewedUserId: isNonEmptyString(row.reviewed_user_id) ? row.reviewed_user_id : "",
+  rating: Math.max(0, Math.min(5, Math.round(toSafeNumber(row.rating, 0)))),
+  comment: isNonEmptyString(row.comment) ? row.comment : "",
+  createdAt: safeDate(row.created_at),
 });
 
-export const mapMessageRow = (row: MessagesRow): Message => ({
-  id: row.id,
-  conversationId: row.conversation_id,
-  senderUserId: row.sender_user_id,
-  content: row.content,
-  read: row.is_read,
-  createdAt: row.created_at,
+export const mapNotificationRow = (row: Partial<NotificationsRow>): Notification => ({
+  id: isNonEmptyString(row.id) ? row.id : "",
+  userId: isNonEmptyString(row.user_id) ? row.user_id : "",
+  title: isNonEmptyString(row.title) ? row.title : "Notificación",
+  description: isNonEmptyString(row.description) ? row.description : "",
+  createdAt: safeDate(row.created_at),
+  read: Boolean(row.is_read),
+  type: row.type ?? "trabajo",
 });
 
-export const mapReviewRow = (row: ReviewsRow): Review => ({
-  id: row.id,
-  reviewerUserId: row.reviewer_user_id,
-  reviewedUserId: row.reviewed_user_id,
-  rating: row.rating,
-  comment: row.comment,
-  createdAt: row.created_at,
+export const mapPaymentMethodRow = (row: Partial<PaymentMethodsRow>): PaymentMethod => ({
+  id: isNonEmptyString(row.id) ? row.id : `pm-${Date.now()}`,
+  userId: isNonEmptyString(row.user_id) ? row.user_id : undefined,
+  type: row.type ?? "Visa",
+  last4: isNonEmptyString(row.last4) ? row.last4 : "0000",
+  expiry: isNonEmptyString(row.expiry) ? row.expiry : "--/--",
+  holderName: isNonEmptyString(row.holder_name) ? row.holder_name : "Titular",
+  isDefault: Boolean(row.is_default),
+  colorClass: isNonEmptyString(row.color_class) ? row.color_class : "from-indigo-500 to-indigo-600",
+  createdAt: safeDate(row.created_at),
 });
 
-export const mapPaymentMethodRow = (row: PaymentMethodsRow): PaymentMethod => ({
-  id: row.id,
-  userId: row.user_id,
-  type: row.type,
-  last4: row.last4,
-  expiry: row.expiry,
-  holderName: row.holder_name,
-  isDefault: row.is_default,
-  colorClass: row.color_class,
-  createdAt: row.created_at,
-});
+export const mapTransactionRow = (row: Partial<TransactionsRow>): Transaction => {
+  const amount = Math.max(0, Math.round(toSafeNumber(row.amount, 0)));
 
-export const mapTransactionRow = (row: TransactionsRow): Transaction => ({
-  id: row.id,
-  userId: row.user_id,
-  jobId: row.job_id,
-  amount: row.amount,
-  amountLabel: `$${row.amount.toLocaleString("es-AR")}`,
-  status: row.status,
-  createdAt: row.created_at,
-});
+  return {
+    id: isNonEmptyString(row.id) ? row.id : `tx-${Date.now()}`,
+    userId: isNonEmptyString(row.user_id) ? row.user_id : undefined,
+    jobId: isNonEmptyString(row.job_id) ? row.job_id : "",
+    amount,
+    amountLabel: `$${amount.toLocaleString("es-AR")}`,
+    status: row.status ?? "pagado",
+    createdAt: safeDate(row.created_at),
+  };
+};

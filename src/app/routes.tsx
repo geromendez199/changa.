@@ -17,13 +17,21 @@ import { Login } from "./screens/auth/Login";
 import { Signup } from "./screens/auth/Signup";
 import { useAuth } from "../context/AuthContext";
 import { Notifications } from "./screens/Notifications";
+import { BrandLogo } from "./components/BrandLogo";
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const { userId, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
-    return <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">Cargando sesión...</div>;
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">
+        <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center">
+          <BrandLogo className="flex justify-center" imageClassName="h-8 w-auto object-contain" />
+          <p className="mt-3">Cargando sesión...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!userId) {

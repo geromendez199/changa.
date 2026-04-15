@@ -19,7 +19,7 @@ export function BrandLogo({
   const logoSrc = useMemo(() => BRAND_LOGO_CANDIDATES[logoIndex], [logoIndex]);
 
   if (!logoSrc) {
-    return <span className={fallbackClassName}>changa.</span>;
+    return <span className={fallbackClassName}>{BRAND.fallbackName}</span>;
   }
 
   return (

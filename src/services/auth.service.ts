@@ -1,4 +1,5 @@
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
+import { shouldUseFallback, normalizeError } from "./service.utils";
 import { supabase } from "../lib/supabase";
 
 export interface AuthResult {
@@ -7,48 +8,85 @@ export interface AuthResult {
 }
 
 function mapAuthError(error: unknown): string {
-  if (error instanceof Error) {
-    if (error.message.includes("Invalid login credentials")) return "Email o contraseña incorrectos.";
-    if (error.message.includes("User already registered")) return "Ese email ya está registrado.";
-    return error.message;
-  }
-  return "Ocurrió un error inesperado con la autenticación.";
+  const errorMessage = normalizeError(error, "Ocurrió un error inesperado con la autenticación.");
+
+  if (errorMessage.includes("Invalid login credentials")) return "Email o contraseña incorrectos.";
+  if (errorMessage.includes("User already registered")) return "Ese email ya está registrado.";
+  if (errorMessage.includes("Password should be at least")) return "La contraseña debe tener al menos 6 caracteres.";
+  if (errorMessage.includes("Email not confirmed")) return "Confirmá tu email para continuar.";
+
+  return errorMessage;
+}
+
+function validateCredentials(email: string, password: string): AuthResult | null {
+  if (!email.includes("@")) return { ok: false, message: "Ingresá un email válido." };
+  if (password.length < 6) return { ok: false, message: "La contraseña debe tener al menos 6 caracteres." };
+  return null;
 }
 
 export async function getCurrentSession(): Promise<Session | null> {
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session;
+  if (shouldUseFallback()) return null;
+
+  try {
+    const { data, error } = await supabase!.auth.getSession();
+    if (error) throw error;
+    return data.session ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
-  if (!supabase) return { unsubscribe: () => undefined };
-  const { data } = supabase.auth.onAuthStateChange(callback);
+  if (shouldUseFallback()) return { unsubscribe: () => undefined };
+
+  const { data } = supabase!.auth.onAuthStateChange((event, session) => {
+    callback(event, session ?? null);
+  });
+
   return data.subscription;
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
-  if (!supabase) return { ok: false, message: "Falta configurar Supabase para iniciar sesión." };
+  const normalizedEmail = email.trim().toLowerCase();
+  const validationError = validateCredentials(normalizedEmail, password);
+  if (validationError) return validationError;
+  if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para iniciar sesión." };
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { ok: false, message: mapAuthError(error) };
-  return { ok: true };
+  try {
+    const { error } = await supabase!.auth.signInWithPassword({ email: normalizedEmail, password });
+    if (error) throw error;
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: mapAuthError(error) };
+  }
 }
 
 export async function signUpWithEmail(email: string, password: string): Promise<AuthResult> {
-  if (!supabase) return { ok: false, message: "Falta configurar Supabase para crear la cuenta." };
+  const normalizedEmail = email.trim().toLowerCase();
+  const validationError = validateCredentials(normalizedEmail, password);
+  if (validationError) return validationError;
+  if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para crear la cuenta." };
 
-  const { error } = await supabase.auth.signUp({ email, password });
-  if (error) return { ok: false, message: mapAuthError(error) };
-  return { ok: true, message: "Te enviamos un email para confirmar tu cuenta si tu proyecto lo requiere." };
+  try {
+    const { error } = await supabase!.auth.signUp({ email: normalizedEmail, password });
+    if (error) throw error;
+
+    return { ok: true, message: "Cuenta creada. Revisá tu email si tu proyecto requiere confirmación." };
+  } catch (error) {
+    return { ok: false, message: mapAuthError(error) };
+  }
 }
 
 export async function signOutUser(): Promise<AuthResult> {
-  if (!supabase) return { ok: true };
+  if (shouldUseFallback()) return { ok: true };
 
-  const { error } = await supabase.auth.signOut();
-  if (error) return { ok: false, message: mapAuthError(error) };
-  return { ok: true };
+  try {
+    const { error } = await supabase!.auth.signOut();
+    if (error) throw error;
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: mapAuthError(error) };
+  }
 }
 
 export type { User };
