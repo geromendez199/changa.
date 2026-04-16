@@ -9,29 +9,29 @@ export function Welcome() {
   const navigate = useNavigate();
 
   return (
-    <div className="app-screen relative overflow-hidden bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 py-8">
-      <div className="absolute right-0 top-16 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-      <div className="absolute bottom-28 left-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-
-      <div className="relative z-10 flex min-h-[calc(100vh-4rem)] flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <div className="inline-flex min-h-28 min-w-72 items-center justify-center rounded-[2rem] border border-white/80 bg-white px-8 py-5 shadow-[0_18px_40px_rgba(8,122,85,0.18)]">
+    <div className="app-screen bg-white px-6 pt-12 pb-8">
+      <div className="flex min-h-screen flex-col items-center">
+        <div className="w-full pt-6 text-center sm:pt-8">
+          <div className="inline-flex min-h-28 min-w-[17.5rem] items-center justify-center rounded-[2rem] bg-white px-6 py-4">
             <BrandLogo
               imageClassName="h-20 w-auto object-contain"
               fallbackClassName="text-4xl font-bold tracking-tight text-[#0DAE79]"
               alt="Changa"
             />
           </div>
-          <div className="mt-10 w-full max-w-sm space-y-3">
+        </div>
+
+        <div className="mt-12 flex w-full flex-1 flex-col justify-start">
+          <div className="w-full max-w-sm space-y-3 self-center">
             <button
               onClick={() => navigate("/login")}
-              className="w-full rounded-full bg-white px-6 py-4 text-base font-bold text-[var(--app-brand-strong)] shadow-[0_18px_40px_rgba(17,24,39,0.16)] transition-all duration-200 active:scale-[0.98]"
+              className="w-full rounded-full bg-[var(--app-brand)] px-6 py-4 text-base font-bold text-white shadow-[0_16px_32px_rgba(13,174,121,0.22)] transition-all duration-200 active:scale-[0.98]"
             >
               Iniciar sesión
             </button>
             <button
               onClick={() => navigate("/signup")}
-              className="w-full rounded-full border-2 border-white/80 bg-white/10 px-6 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all duration-200 active:scale-[0.98]"
+              className="w-full rounded-full border-2 border-[var(--app-brand)] bg-white px-6 py-4 text-base font-semibold text-[var(--app-brand)] transition-all duration-200 active:scale-[0.98]"
             >
               Crear cuenta
             </button>
