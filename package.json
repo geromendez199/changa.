@@ -15,6 +15,11 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write src",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:auth": "playwright test --grep @auth",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
@@ -78,10 +83,13 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.9.0",
     "@tailwindcss/vite": "4.1.12",
+    "@playwright/test": "^1.44.0",
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
     "@vitejs/plugin-react": "4.7.0",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.1",
     "prettier": "^3.5.3",
     "tailwindcss": "4.1.12",
