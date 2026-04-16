@@ -5,7 +5,21 @@
 -- Changa MVP schema + RLS
 create extension if not exists "pgcrypto";
 
-create type job_category as enum ('Hogar','Oficios','Delivery','Eventos','Tecnología','Otros');
+create type job_category as enum (
+  'Hogar',
+  'Oficios',
+  'Delivery',
+  'Eventos',
+  'Tecnología',
+  'Construcción y Mantenimiento',
+  'Mecánica y Transporte',
+  'Servicios Personales y Estética',
+  'Alimentación y Tradición',
+  'Oficios Modernos y Digitales',
+  'Control de Plagas',
+  'Personal Trainer',
+  'Otros'
+);
 create type job_urgency as enum ('normal','urgente');
 create type job_status as enum ('publicado','postulado','en_progreso','programado','pendiente','completado','cancelado');
 create type application_status as enum ('enviada','aceptada','rechazada');

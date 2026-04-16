@@ -5,7 +5,21 @@
 import { z } from "zod";
 import { ValidationError } from "./errors";
 
-const jobCategories = ["Hogar", "Oficios", "Delivery", "Eventos", "Tecnología", "Otros"] as const;
+const jobCategories = [
+  "Hogar",
+  "Oficios",
+  "Delivery",
+  "Eventos",
+  "Tecnología",
+  "Construcción y Mantenimiento",
+  "Mecánica y Transporte",
+  "Servicios Personales y Estética",
+  "Alimentación y Tradición",
+  "Oficios Modernos y Digitales",
+  "Control de Plagas",
+  "Personal Trainer",
+  "Otros",
+] as const;
 const jobUrgencies = ["normal", "urgente"] as const;
 const jobSortValues = ["distance", "newest"] as const;
 

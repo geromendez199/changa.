@@ -31,6 +31,13 @@ export const jobCategories: JobCategory[] = [
   "Delivery",
   "Eventos",
   "Tecnología",
+  "Construcción y Mantenimiento",
+  "Mecánica y Transporte",
+  "Servicios Personales y Estética",
+  "Alimentación y Tradición",
+  "Oficios Modernos y Digitales",
+  "Control de Plagas",
+  "Personal Trainer",
   "Otros",
 ];
 
