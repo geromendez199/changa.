@@ -32,7 +32,7 @@ export function Profile() {
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-8">
             <button onClick={() => navigate("/profile/edit")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Pencil size={20} className="text-white" /></button>
-            <BrandLogo imageClassName="h-9 w-auto object-contain opacity-95" fallbackClassName="text-white text-lg font-bold" alt="Changa" />
+            <BrandLogo imageClassName="h-12 w-auto object-contain opacity-95" fallbackClassName="text-white text-lg font-bold" alt="Changa" />
             <button onClick={() => navigate("/notifications")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
           </div>
 

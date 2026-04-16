@@ -27,7 +27,7 @@ function RequireAuth({ children }: { children: ReactElement }) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] px-6 pt-20 max-w-md mx-auto font-['Inter'] text-gray-500">
         <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center">
-          <BrandLogo className="flex justify-center" imageClassName="h-8 w-auto object-contain" />
+          <BrandLogo className="flex justify-center" imageClassName="h-10 w-auto object-contain" />
           <p className="mt-3">Cargando sesión...</p>
         </div>
       </div>

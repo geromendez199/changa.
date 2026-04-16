@@ -10,7 +10,7 @@ interface BrandLogoProps {
 
 export function BrandLogo({
   className = "",
-  imageClassName = "h-12 w-auto object-contain",
+  imageClassName = "h-16 w-auto object-contain",
   fallbackClassName = "text-3xl font-bold tracking-tight",
   alt,
 }: BrandLogoProps) {

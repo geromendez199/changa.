@@ -12,7 +12,7 @@ export function Notifications() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
       <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-2"><h1 className="text-2xl font-bold text-[#111827]">Notificaciones</h1><BrandLogo imageClassName="h-8 w-auto object-contain" fallbackClassName="text-lg font-bold" /></div>
+        <div className="flex items-center justify-between mb-2"><h1 className="text-2xl font-bold text-[#111827]">Notificaciones</h1><BrandLogo imageClassName="h-10 w-auto object-contain" fallbackClassName="text-lg font-bold" /></div>
         <p className="text-sm text-gray-500">Alertas sobre tus changas y mensajes</p>
       </div>
 

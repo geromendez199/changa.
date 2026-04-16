@@ -38,7 +38,7 @@ export function Home() {
       <div className="bg-white px-6 pt-14 pb-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex-1">
-            <BrandLogo imageClassName="h-10 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
+            <BrandLogo imageClassName="h-14 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
             <p className="text-sm text-gray-500 mt-2">Bienvenido{currentUserId ? " 👋" : ""}</p>
           </div>
           <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="relative p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
