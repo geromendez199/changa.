@@ -312,29 +312,31 @@ export function PublishJob() {
         )}
       </div>
 
-      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto max-w-[28rem] px-6 py-5 sm:max-w-[32rem]">
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          disabled={!canProceed || publishing || (isPreview && step === totalSteps)}
-          onClick={() => void onContinue()}
-          icon={step === totalSteps ? <Check size={18} /> : undefined}
-        >
-          {step === totalSteps
-            ? isPreview
-              ? isEditing
-                ? "Guardar cambios con Supabase"
-                : "Publicación real con Supabase"
-              : publishing
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0">
+        <div className="app-content-shell px-6 py-5 lg:px-10">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={!canProceed || publishing || (isPreview && step === totalSteps)}
+            onClick={() => void onContinue()}
+            icon={step === totalSteps ? <Check size={18} /> : undefined}
+          >
+            {step === totalSteps
+              ? isPreview
                 ? isEditing
-                  ? "Guardando..."
-                  : "Publicando..."
-                : isEditing
-                  ? "Guardar cambios"
-                  : "Publicar changa"
-            : "Continuar"}
-        </Button>
+                  ? "Guardar cambios con Supabase"
+                  : "Publicación real con Supabase"
+                : publishing
+                  ? isEditing
+                    ? "Guardando..."
+                    : "Publicando..."
+                  : isEditing
+                    ? "Guardar cambios"
+                    : "Publicar changa"
+              : "Continuar"}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ export function JobCard({
       <button
         type="button"
         onClick={() => navigate(`/job/${id}`)}
-        className="app-surface min-w-[280px] cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)]"
+        className="app-surface min-w-[280px] cursor-pointer overflow-hidden text-left transition-[transform,box-shadow] duration-200 hover:translate-y-[-2px] hover:shadow-[var(--app-shadow-md)] lg:min-w-0"
       >
         <div className="relative">
           <img src={image} alt={title} className="h-40 w-full object-cover" />

@@ -149,39 +149,41 @@ export function ChatDetail() {
         )}
       </div>
 
-      <div className="app-floating-bar fixed bottom-0 left-0 right-0 mx-auto flex max-w-[28rem] items-center gap-3 px-4 py-4 sm:max-w-[32rem] sm:px-6">
-        <div className="flex-1">
-          <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} size="lg" />
-          {composerFeedback && (
-            <p className="mt-2 text-xs font-medium text-[var(--app-brand)]">{composerFeedback}</p>
-          )}
+      <div className="app-floating-bar fixed bottom-0 left-0 right-0">
+        <div className="app-content-shell flex items-center gap-3 px-4 py-4 sm:px-6 lg:px-10">
+          <div className="flex-1">
+            <Input placeholder="Escribí un mensaje..." value={text} onChange={setText} size="lg" />
+            {composerFeedback && (
+              <p className="mt-2 text-xs font-medium text-[var(--app-brand)]">{composerFeedback}</p>
+            )}
+          </div>
+          <button
+            onClick={async () => {
+              if (isPreview) {
+                toast("Vista previa", {
+                  description: "El chat funciona como demo local y no envía mensajes reales.",
+                });
+                return;
+              }
+
+              const result = await sendMessage(conversation.id, text);
+              if (!result.ok) {
+                toast.error("No pudimos enviar el mensaje", {
+                  description: result.message ?? "Intentá nuevamente.",
+                });
+                return;
+              }
+
+              setText("");
+              setComposerFeedback("Mensaje enviado");
+              window.setTimeout(() => setComposerFeedback(null), 2200);
+            }}
+            disabled={!text.trim() || isPreview}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--app-brand)] text-white disabled:bg-[#c9d3ce]"
+          >
+            <Send size={18} />
+          </button>
         </div>
-        <button
-          onClick={async () => {
-            if (isPreview) {
-              toast("Vista previa", {
-                description: "El chat funciona como demo local y no envía mensajes reales.",
-              });
-              return;
-            }
-
-            const result = await sendMessage(conversation.id, text);
-            if (!result.ok) {
-              toast.error("No pudimos enviar el mensaje", {
-                description: result.message ?? "Intentá nuevamente.",
-              });
-              return;
-            }
-
-            setText("");
-            setComposerFeedback("Mensaje enviado");
-            window.setTimeout(() => setComposerFeedback(null), 2200);
-          }}
-          disabled={!text.trim() || isPreview}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--app-brand)] text-white disabled:bg-[#c9d3ce]"
-        >
-          <Send size={18} />
-        </button>
       </div>
     </div>
   );

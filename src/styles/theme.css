@@ -66,6 +66,7 @@
   --app-radius-card: 24px;
   --app-radius-control: 18px;
   --app-shell-padding: 24px;
+  --app-content-max: 1440px;
   --app-header-top: 56px;
   --app-header-bottom: 24px;
   --app-control-height-md: 52px;
@@ -112,7 +113,7 @@
 @media (min-width: 768px) {
   :root {
     --font-size: 16px;
-    --app-shell-padding: 24px;
+    --app-shell-padding: 28px;
     --app-header-top: 56px;
     --app-header-bottom: 24px;
     --app-control-height-md: 52px;
@@ -120,6 +121,22 @@
     --app-icon-button-size: 44px;
     --app-bottom-nav-height: 80px;
     --app-bottom-nav-label-size: 10px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --app-shell-padding: 40px;
+    --app-content-max: 1520px;
+    --app-header-top: 44px;
+    --app-header-bottom: 28px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --app-shell-padding: 56px;
+    --app-content-max: 1640px;
   }
 }
 
@@ -282,9 +299,15 @@
 
 @layer components {
   .app-screen {
-    @apply mx-auto min-h-screen w-full max-w-full md:max-w-[56rem] xl:max-w-[72rem];
+    @apply min-h-screen w-full;
     background: var(--app-bg);
     color: var(--app-text);
+  }
+
+  .app-content-shell {
+    width: min(100%, var(--app-content-max));
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .app-header-shell {

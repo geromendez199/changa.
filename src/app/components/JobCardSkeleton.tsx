@@ -9,7 +9,7 @@ interface JobCardSkeletonProps {
 export function JobCardSkeleton({ featured = false }: JobCardSkeletonProps) {
   if (featured) {
     return (
-      <div className="app-surface min-w-[280px] overflow-hidden">
+      <div className="app-surface min-w-[280px] overflow-hidden lg:min-w-0">
         <div className="app-skeleton h-40" />
         <div className="space-y-3 p-4">
           <div className="app-skeleton h-4 w-24 rounded-full" />

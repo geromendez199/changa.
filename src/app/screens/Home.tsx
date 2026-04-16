@@ -40,7 +40,7 @@ export function Home() {
   return (
     <div className="app-screen pb-28">
       <div className="app-header-shell pb-8">
-        <div className="mx-auto max-w-6xl">
+        <div className="app-content-shell">
           <div className="flex items-center justify-between">
             <BrandLogo
               className="justify-start"
@@ -56,7 +56,7 @@ export function Home() {
             </button>
           </div>
 
-          <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
             <Input
               placeholder="Buscar changas, oficios o categorías"
               icon={<Search size={20} />}
@@ -64,7 +64,7 @@ export function Home() {
               onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)}
             />
 
-            <SurfaceCard tone="muted" padding="sm" className="xl:mt-0">
+            <SurfaceCard tone="muted" padding="sm" className="lg:mt-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-[var(--app-text-muted)]">
                   <MapPin size={16} className="text-[var(--app-brand)]" />
@@ -84,7 +84,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <div className="app-content-shell px-4 py-6 sm:px-6 lg:px-10">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {primaryCategoryFilters.map((cat, idx) => (
             <button
@@ -112,7 +112,7 @@ export function Home() {
         <SurfaceCard
           tone="soft"
           padding="sm"
-          className="mx-auto mb-4 max-w-6xl border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
+          className="app-content-shell mb-4 border-amber-100 bg-[#FFFDF7] text-sm text-[var(--app-text-muted)] shadow-none"
         >
           <p className="font-semibold text-[var(--app-text)]">No pudimos actualizar las changas.</p>
           <button onClick={() => void refreshJobs()} className="mt-2 font-semibold text-[var(--app-brand)]">
@@ -123,20 +123,20 @@ export function Home() {
 
       {(featuredJobs.length > 0 || shouldShowLoadingCards) && (
         <div className="mb-8">
-          <div className="mx-auto mb-5 max-w-6xl px-4 sm:px-6">
+          <div className="app-content-shell mb-5 px-4 sm:px-6 lg:px-10">
             <SectionHeader
               title="Destacadas"
               actionLabel="Ver todas"
               onAction={() => navigate("/search")}
             />
           </div>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide xl:grid xl:grid-cols-3 xl:overflow-visible">
-            {shouldShowLoadingCards
-              ? Array.from({ length: 3 }).map((_, index) => (
+          <div className="app-content-shell px-4 sm:px-6 lg:px-10">
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide lg:grid lg:grid-cols-3 lg:overflow-visible 2xl:grid-cols-4">
+              {shouldShowLoadingCards
+                ? Array.from({ length: 4 }).map((_, index) => (
                   <JobCardSkeleton key={`featured-skeleton-${index}`} featured />
                 ))
-              : featuredJobs.map((job) => (
+                : featuredJobs.map((job) => (
                   <JobCard
                     key={job.id}
                     id={job.id}
@@ -155,7 +155,7 @@ export function Home() {
         </div>
       )}
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="app-content-shell px-4 sm:px-6 lg:px-10">
         <div className="mb-5">
           <SectionHeader
             title="Cerca tuyo"
@@ -170,13 +170,13 @@ export function Home() {
         </div>
 
         {shouldShowLoadingCards ? (
-          <div className="grid gap-3 xl:grid-cols-2">
-            {Array.from({ length: 3 }).map((_, index) => (
+          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
               <JobCardSkeleton key={`nearby-skeleton-${index}`} />
             ))}
           </div>
         ) : nearbyJobs.length > 0 ? (
-          <div className="grid gap-3 xl:grid-cols-2">
+          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {nearbyJobs.map((job) => (
               <JobCard
                 key={job.id}

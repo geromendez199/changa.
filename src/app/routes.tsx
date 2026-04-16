@@ -26,10 +26,12 @@ function RequireAuth({ children }: { children: ReactElement }) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto min-h-screen w-full max-w-full bg-[#F8FAFC] px-6 pt-20 font-['Inter'] text-gray-500 md:max-w-[56rem] xl:max-w-[72rem]">
-        <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center">
+      <div className="app-screen bg-[#F8FAFC] px-6 pt-20 font-['Inter'] text-gray-500 lg:px-10">
+        <div className="app-content-shell">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 text-center">
           <BrandLogo className="flex justify-center" imageClassName="h-12 w-auto object-contain" />
           <p className="mt-3">Cargando sesión...</p>
+          </div>
         </div>
       </div>
     );
