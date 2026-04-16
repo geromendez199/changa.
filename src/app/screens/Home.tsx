@@ -37,9 +37,9 @@ export function Home() {
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
       <div className="bg-white px-6 pt-14 pb-8 shadow-sm">
         <div className="mb-6">
-          <div className="relative flex items-center justify-center pr-14">
-            <BrandLogo imageClassName="h-16 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
-            <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="absolute right-0 top-1/2 -translate-y-1/2 p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
+          <div className="flex items-center justify-between">
+            <BrandLogo className="justify-start" imageClassName="h-16 w-auto object-contain" fallbackClassName="text-2xl font-bold tracking-tight text-[#111827]" />
+            <button onClick={() => navigate(currentUserId ? "/notifications" : "/login")} className="p-3 bg-[#F8FAFC] rounded-full hover:bg-gray-100 transition-colors">
               <Bell size={20} className="text-gray-600" />
             </button>
           </div>
