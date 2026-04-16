@@ -12,9 +12,11 @@ export function Welcome() {
 
       <div className="flex-1 flex flex-col items-center justify-center relative z-10">
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center justify-center min-w-72 min-h-28 bg-white/20 backdrop-blur-sm rounded-3xl mb-6 shadow-xl px-6">
+          <div className="relative inline-flex items-center justify-center min-w-72 min-h-28 rounded-[2rem] mb-6 px-8 py-5 bg-white/28 border border-white/30 shadow-[0_24px_60px_rgba(8,122,85,0.28)] backdrop-blur-md">
+            <div className="pointer-events-none absolute inset-[10px] rounded-[1.4rem] border border-white/18 bg-white/12" />
             <BrandLogo
-              imageClassName="h-20 w-auto object-contain"
+              className="relative z-10"
+              imageClassName="h-20 w-auto object-contain drop-shadow-[0_8px_18px_rgba(8,122,85,0.18)]"
               fallbackClassName="text-4xl font-bold tracking-tight text-white"
               alt="Changa"
             />
