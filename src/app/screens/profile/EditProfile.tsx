@@ -12,6 +12,7 @@ export function EditProfile() {
   const [name, setName] = useState(user?.name || "");
   const [location, setLocation] = useState(user?.location || "");
   const [bio, setBio] = useState(user?.bio || "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -20,6 +21,7 @@ export function EditProfile() {
     setName(user.name || "");
     setLocation(user.location || "");
     setBio(user.bio || "");
+    setAvatarUrl(user.avatarUrl || "");
   }, [user]);
 
   if (!user) return null;
@@ -45,6 +47,7 @@ export function EditProfile() {
       fullName: trimmedName,
       location: trimmedLocation,
       bio,
+      avatarUrl,
     });
     setIsSaving(false);
 
@@ -67,6 +70,7 @@ export function EditProfile() {
       </div>
 
       <div className="px-6 py-6 space-y-4">
+        <Input placeholder="URL de foto de perfil" value={avatarUrl} onChange={setAvatarUrl} />
         <Input placeholder="Nombre" value={name} onChange={setName} />
         <Input placeholder="Ubicación" value={location} onChange={setLocation} />
         <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Contá algo sobre vos" className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]" />

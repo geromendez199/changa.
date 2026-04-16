@@ -24,6 +24,7 @@ export interface Profile {
   name: string;
   fullName?: string;
   avatarLetter: string;
+  avatarUrl?: string;
   location: string;
   memberSince: string;
   verified: boolean;

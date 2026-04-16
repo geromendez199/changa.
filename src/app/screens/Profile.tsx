@@ -1,12 +1,11 @@
 import { BottomNav } from "../components/BottomNav";
-import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, Award, TrendingUp, Bell, LogOut, Pencil } from "lucide-react";
+import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, TrendingUp, Bell, LogOut, Pencil } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Badge } from "../components/Badge";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 import { useAuth } from "../../context/AuthContext";
 import { EmptyStateCard } from "../components/EmptyStateCard";
-import { BrandLogo } from "../components/BrandLogo";
 
 export function Profile() {
   const navigate = useNavigate();
@@ -25,21 +24,25 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
-      <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 pt-14 pb-24 rounded-b-[48px] relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] px-6 pt-14 pb-14 rounded-b-[40px] relative overflow-hidden">
         <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 left-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <button onClick={() => navigate("/profile/edit")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Pencil size={20} className="text-white" /></button>
-            <div className="px-5 py-3 rounded-[1.4rem] bg-white shadow-[0_14px_36px_rgba(8,122,85,0.2)]">
-              <BrandLogo imageClassName="h-12 w-auto object-contain" fallbackClassName="text-[#0DAE79] text-lg font-bold" alt="Changa" />
-            </div>
+            <div className="w-10" />
             <button onClick={() => navigate("/notifications")} className="p-2 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"><Bell size={20} className="text-white" /></button>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-[#0DAE79] font-bold text-3xl mb-4 shadow-2xl">{profile.avatarLetter}</div>
+            <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center overflow-hidden text-[#0DAE79] font-bold text-3xl mb-4 shadow-2xl">
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.name} className="h-full w-full object-cover" />
+              ) : (
+                profile.avatarLetter
+              )}
+            </div>
             <h1 className="text-2xl font-bold text-white mb-1">{profile.name}</h1>
             <p className="text-white/80 text-sm">Miembro desde {profile.memberSince}</p>
             <div className="mt-4">{profile.verified && <Badge variant="success" icon={<Shield size={12} />}>Verificado</Badge>}</div>
@@ -47,7 +50,7 @@ export function Profile() {
         </div>
       </div>
 
-      <div className="px-6 -mt-16 mb-6 relative z-10">
+      <div className="px-6 -mt-10 mb-6 relative z-10">
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
@@ -56,8 +59,6 @@ export function Profile() {
           </div>
         </div>
       </div>
-
-      <div className="px-6 mb-6"><div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 border border-blue-100 flex items-center gap-4"><div className="bg-gradient-to-br from-blue-500 to-purple-500 p-3 rounded-2xl shadow-lg"><Award size={24} className="text-white" /></div><div className="flex-1"><h3 className="font-bold text-[#111827] mb-0.5">Confianza de la comunidad</h3><p className="text-sm text-gray-600">{profile.trustIndicators.join(" • ")}</p></div></div></div>
 
       <div className="px-6 space-y-3 mb-6">
         <button onClick={() => navigate("/payments")} className="w-full bg-white rounded-3xl p-5 shadow-sm flex items-center gap-4 border border-gray-100"><div className="bg-green-50 p-3 rounded-2xl"><CreditCard size={24} className="text-[#0DAE79]" /></div><div className="flex-1 text-left"><h3 className="font-bold text-[#111827] text-base">Pagos</h3><p className="text-sm text-gray-500">Métodos y movimientos</p></div><ChevronRight size={20} className="text-gray-400" /></button>
