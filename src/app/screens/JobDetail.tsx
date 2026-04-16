@@ -1,6 +1,11 @@
-import { ArrowLeft, MapPin, Calendar, Star, Heart, Shield, Clock } from "lucide-react";
+/**
+ * WHY: Make job detail feel more credible with stronger poster trust signals and clear safety guidance around hiring.
+ * CHANGED: YYYY-MM-DD
+ */
+import { ArrowLeft, MapPin, Calendar, Star, Heart, Shield, Clock, CircleHelp, Flag, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
 import { useAppState } from "../hooks/useAppState";
@@ -49,6 +54,28 @@ export function JobDetail() {
   }
 
   const publisher = profiles.find((user) => user.id === job.postedByUserId);
+  const phoneVerified = publisher?.trustIndicators.some((indicator) =>
+    indicator.toLowerCase().includes("tel"),
+  );
+  const trustSignals = publisher
+    ? [
+        {
+          label: "Identidad",
+          value: publisher.verified ? "Verificada" : "Pendiente",
+          icon: Shield,
+        },
+        {
+          label: "Teléfono",
+          value: phoneVerified ? "Verificado" : "Próximamente",
+          icon: Phone,
+        },
+        {
+          label: "Cumplimiento",
+          value: `${publisher.successRate}%`,
+          icon: Clock,
+        },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-32 max-w-md mx-auto font-['Inter']">
@@ -119,13 +146,71 @@ export function JobDetail() {
                 </div>
               </div>
             </div>
+
+            {publisher.trustIndicators.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {publisher.trustIndicators.map((indicator) => (
+                  <Badge key={indicator} variant="success">
+                    {indicator}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {trustSignals.map((signal) => (
+                <div key={signal.label} className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-3 text-center">
+                  <signal.icon size={16} className="mx-auto mb-2 text-[#0DAE79]" />
+                  <p className="text-[11px] font-semibold text-gray-500">{signal.label}</p>
+                  <p className="mt-1 text-xs font-bold text-[#111827]">{signal.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-3 gap-3 mt-6">
-          <div className="bg-blue-50 rounded-2xl p-3 text-center border border-blue-100"><Shield size={20} className="text-blue-600 mx-auto mb-1" /><p className="text-xs font-semibold text-blue-700">Pago seguro</p></div>
-          <div className="bg-green-50 rounded-2xl p-3 text-center border border-green-100"><Clock size={20} className="text-green-600 mx-auto mb-1" /><p className="text-xs font-semibold text-green-700">Garantía</p></div>
-          <div className="bg-purple-50 rounded-2xl p-3 text-center border border-purple-100"><Star size={20} className="text-purple-600 mx-auto mb-1" /><p className="text-xs font-semibold text-purple-700">Confianza</p></div>
+          <div className="bg-blue-50 rounded-2xl p-3 text-center border border-blue-100"><Shield size={20} className="text-blue-600 mx-auto mb-1" /><p className="text-xs font-semibold text-blue-700">Pago protegido</p></div>
+          <div className="bg-green-50 rounded-2xl p-3 text-center border border-green-100"><Clock size={20} className="text-green-600 mx-auto mb-1" /><p className="text-xs font-semibold text-green-700">Contexto claro</p></div>
+          <div className="bg-purple-50 rounded-2xl p-3 text-center border border-purple-100"><Star size={20} className="text-purple-600 mx-auto mb-1" /><p className="text-xs font-semibold text-purple-700">Reputación visible</p></div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-gray-100 bg-white p-5">
+          <h2 className="text-lg font-bold text-[#111827]">Antes de coordinar</h2>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-gray-600">
+            <p>1. Revisá el perfil, las reseñas y la tasa de cumplimiento de la otra persona.</p>
+            <p>2. Confirmá detalles, tiempos y alcance por chat para que quede todo claro.</p>
+            <p>3. Priorizá pagos y acuerdos dentro de Changa para mantener contexto y respaldo.</p>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() =>
+                toast("Centro de ayuda", {
+                  description: "La guía de seguridad se va a sumar en una próxima etapa.",
+                })
+              }
+              className="flex-1 rounded-full border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#111827]"
+            >
+              <span className="inline-flex items-center gap-2">
+                <CircleHelp size={16} />
+                Ayuda
+              </span>
+            </button>
+            <button
+              onClick={() =>
+                toast("Reporte registrado", {
+                  description: "El flujo completo para reportar publicaciones se va a sumar en una próxima etapa.",
+                })
+              }
+              className="flex-1 rounded-full border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Flag size={16} />
+                Reportar
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

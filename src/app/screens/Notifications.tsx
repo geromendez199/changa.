@@ -27,8 +27,10 @@ export function Notifications() {
         {notifications.length === 0 && (
           <EmptyStateCard
             icon={<Bell size={28} />}
+            eyebrow="Tu centro de novedades"
             title="Todavía no tenés notificaciones"
-            description="Cuando tengas novedades sobre postulaciones, mensajes o pagos las vas a ver acá."
+            description="Cuando haya respuestas, mensajes, movimientos o cambios importantes en tus changas, las vas a ver acá."
+            note="Es el lugar para seguir todo lo relevante sin perder contexto."
             actionLabel="Explorar categorías"
             onAction={() => navigate("/search")}
           />

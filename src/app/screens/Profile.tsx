@@ -1,7 +1,12 @@
+/**
+ * WHY: Strengthen trust and safety perception on the profile screen using real credibility signals plus honest placeholders for data that is still evolving.
+ * CHANGED: YYYY-MM-DD
+ */
 import { BottomNav } from "../components/BottomNav";
-import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, TrendingUp, Bell, LogOut, Pencil } from "lucide-react";
+import { Star, Briefcase, Shield, CreditCard, Settings, ChevronRight, TrendingUp, Bell, LogOut, Pencil, Phone, Clock3, CircleHelp, Flag } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { Badge } from "../components/Badge";
 import { useAppState, useCurrentUser } from "../hooks/useAppState";
 import { useAuth } from "../../context/AuthContext";
@@ -10,7 +15,7 @@ import { EmptyStateCard } from "../components/EmptyStateCard";
 export function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
-  const { jobs, profiles, reviews, refreshProfile, isLoading } = useAppState();
+  const { profiles, reviews, refreshProfile, isLoading } = useAppState();
   const { signOut } = useAuth();
 
   useEffect(() => {
@@ -21,6 +26,52 @@ export function Profile() {
 
   const profile = profiles.find((item) => item.id === currentUser.id) ?? currentUser;
   const myReviews = reviews.filter((review) => review.reviewedUserId === profile.id).slice(0, 2);
+  const phoneVerified = profile.trustIndicators.some((indicator) =>
+    indicator.toLowerCase().includes("tel"),
+  );
+  const identityVerified = profile.verified;
+
+  const trustRows = [
+    {
+      label: "Identidad",
+      value: identityVerified ? "Verificada" : "Pendiente",
+      description: identityVerified
+        ? "Tu perfil ya muestra una señal fuerte de confianza."
+        : "Completá más datos para fortalecer tu perfil.",
+      icon: Shield,
+      iconClassName: "text-[#0DAE79]",
+      surfaceClassName: "bg-green-50",
+    },
+    {
+      label: "Teléfono",
+      value: phoneVerified ? "Verificado" : "Próximamente",
+      description: phoneVerified
+        ? "Se usa para dar más respaldo a la coordinación."
+        : "Lo vamos a sumar como una capa extra de seguridad.",
+      icon: Phone,
+      iconClassName: "text-blue-600",
+      surfaceClassName: "bg-blue-50",
+    },
+    {
+      label: "Pagos",
+      value: "Protegidos",
+      description: "Priorizá acuerdos y movimientos desde Changa para mantener contexto.",
+      icon: CreditCard,
+      iconClassName: "text-emerald-600",
+      surfaceClassName: "bg-emerald-50",
+    },
+    {
+      label: "Respuesta",
+      value: profile.completedJobs > 0 ? "Historial activo" : "En construcción",
+      description:
+        profile.completedJobs > 0
+          ? "Ya tenés señales de cumplimiento visibles para otras personas."
+          : "Tus primeras coordinaciones van a construir esta señal.",
+      icon: Clock3,
+      iconClassName: "text-amber-600",
+      surfaceClassName: "bg-amber-50",
+    },
+  ] as const;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-28 max-w-md mx-auto font-['Inter']">
@@ -54,9 +105,51 @@ export function Profile() {
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
           <div className="grid grid-cols-3 gap-6">
             <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-yellow-50 p-2 rounded-xl"><Star size={20} className="text-[#FBBF24]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.rating}</p><p className="text-xs text-gray-500 font-medium">Rating</p></div>
-            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#0DAE79]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{jobs.filter((job) => job.postedByUserId === profile.id).length}</p><p className="text-xs text-gray-500 font-medium">Publicados</p></div>
+            <div className="text-center border-x border-gray-100"><div className="flex items-center justify-center mb-2"><div className="bg-green-50 p-2 rounded-xl"><Briefcase size={20} className="text-[#0DAE79]" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.completedJobs}</p><p className="text-xs text-gray-500 font-medium">Completados</p></div>
             <div className="text-center"><div className="flex items-center justify-center mb-2"><div className="bg-blue-50 p-2 rounded-xl"><TrendingUp size={20} className="text-blue-500" /></div></div><p className="text-2xl font-bold text-[#111827] mb-0.5">{profile.successRate}%</p><p className="text-xs text-gray-500 font-medium">Éxito</p></div>
           </div>
+        </div>
+      </div>
+
+      <div className="px-6 mb-6">
+        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-[#111827]">Confianza y seguridad</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Estas señales ayudan a otras personas a entender rápido con quién están tratando.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {trustRows.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`rounded-2xl p-3 ${item.surfaceClassName}`}>
+                    <item.icon size={18} className={item.iconClassName} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-[#111827]">{item.label}</p>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#111827]">
+                        {item.value}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-500">{item.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {profile.trustIndicators.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {profile.trustIndicators.map((indicator) => (
+                <Badge key={indicator} variant="success">
+                  {indicator}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -81,12 +174,52 @@ export function Profile() {
         {!isLoading && myReviews.length === 0 && (
           <EmptyStateCard
             icon={<Star size={28} />}
+            eyebrow="Tu reputación empieza acá"
             title="Todavía no tenés reseñas"
-            description="Completá tu perfil y empezá a publicar para recibir tus primeras calificaciones."
+            description="Completá tu perfil y empezá a moverte en Changa para construir señales visibles de confianza."
+            note="Las primeras reseñas suelen destrabar mucha más credibilidad en un marketplace local."
             actionLabel="Completar perfil"
             onAction={() => navigate("/profile/edit")}
           />
         )}
+      </div>
+
+      <div className="px-6 mb-6">
+        <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-[#111827]">Ayuda y seguridad</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Si algo te genera dudas, dejalo registrado y priorizá siempre la coordinación dentro de Changa.
+          </p>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() =>
+                toast("Centro de ayuda", {
+                  description: "La guía de seguridad y ayuda se va a sumar en una próxima etapa.",
+                })
+              }
+              className="flex-1 rounded-full border border-gray-200 bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#111827]"
+            >
+              <span className="inline-flex items-center gap-2">
+                <CircleHelp size={16} />
+                Centro de ayuda
+              </span>
+            </button>
+            <button
+              onClick={() =>
+                toast("Reporte recibido", {
+                  description: "Cuando esté listo el flujo completo, vas a poder reportar desde acá.",
+                })
+              }
+              className="flex-1 rounded-full border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Flag size={16} />
+                Reportar
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="px-6 mt-8 mb-4"><button onClick={async () => { await signOut(); navigate("/login"); }} className="w-full text-red-600 font-semibold text-sm py-3 flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-colors"><LogOut size={18} />Cerrar sesión</button></div>

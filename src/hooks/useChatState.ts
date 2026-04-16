@@ -16,6 +16,11 @@ interface UseChatStateOptions {
   pushError: (message?: string) => void;
 }
 
+interface SendMessageResult {
+  ok: boolean;
+  message?: string;
+}
+
 export function useChatState({ userId, pushError }: UseChatStateOptions) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -49,8 +54,9 @@ export function useChatState({ userId, pushError }: UseChatStateOptions) {
   const sendMessage = useCallback(
     async (conversationId: string, content: string) => {
       if (!userId) {
-        pushError("Necesitás iniciar sesión para enviar mensajes.");
-        return;
+        const message = "Necesitás iniciar sesión para enviar mensajes.";
+        pushError(message);
+        return { ok: false, message } satisfies SendMessageResult;
       }
 
       const result = await sendChatMessage({
@@ -59,8 +65,9 @@ export function useChatState({ userId, pushError }: UseChatStateOptions) {
         content,
       });
       if (!result.data) {
-        pushError(result.error);
-        return;
+        const message = result.error ?? "No pudimos enviar tu mensaje.";
+        pushError(message);
+        return { ok: false, message } satisfies SendMessageResult;
       }
 
       setMessages((prev) => [...prev, result.data!]);
@@ -71,6 +78,8 @@ export function useChatState({ userId, pushError }: UseChatStateOptions) {
             : conversation,
         ),
       );
+
+      return { ok: true } satisfies SendMessageResult;
     },
     [pushError, userId],
   );

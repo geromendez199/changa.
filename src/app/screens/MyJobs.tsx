@@ -70,9 +70,11 @@ export function MyJobs() {
         {tabData[activeTab].length === 0 && (
           <EmptyStateCard
             icon={activeTab === "publicados" ? <BriefcaseBusiness size={28} /> : activeTab === "postulados" ? <Send size={28} /> : <CheckCircle size={28} />}
-            title={activeTab === "publicados" ? "Todavía no publicaste changas" : activeTab === "postulados" ? "No tenés postulaciones" : "Sin trabajos completados"}
-            description={activeTab === "publicados" ? "Publicá tu primera changa para empezar a recibir propuestas." : activeTab === "postulados" ? "Cuando te postules a una changa aparecerá en esta sección." : "Tus changas finalizadas aparecerán acá."}
-            actionLabel={activeTab === "publicados" ? "Publicar changa" : "Explorar changas"}
+            eyebrow={activeTab === "publicados" ? "Sin publicaciones todavía" : activeTab === "postulados" ? "Todavía no te postulaste" : "Nada completado aún"}
+            title={activeTab === "publicados" ? "Todavía no publicaste changas" : activeTab === "postulados" ? "No tenés postulaciones activas" : "Tus trabajos completados van a aparecer acá"}
+            description={activeTab === "publicados" ? "Publicá tu primera changa para empezar a recibir respuestas de personas de tu zona." : activeTab === "postulados" ? "Explorá oportunidades y hacé tu primera postulación con un mensaje claro y confiable." : "Cuando cierres trabajos y acumules reseñas, esta sección va a mostrar tu historial."}
+            note={activeTab === "publicados" ? "Una publicación clara suele recibir mejores respuestas y más rápido." : undefined}
+            actionLabel={activeTab === "publicados" ? "Publicar una changa" : "Explorar changas"}
             onAction={() => navigate(activeTab === "publicados" ? "/publish" : "/search")}
           />
         )}

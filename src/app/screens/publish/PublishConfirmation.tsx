@@ -15,8 +15,11 @@ export function PublishConfirmation() {
         <CheckCircle className="text-[#0DAE79] mx-auto mb-4" size={56} />
         <h1 className="text-2xl font-bold text-[#111827] mb-2">¡Publicación creada!</h1>
         <p className="text-sm text-gray-500 mb-6">
-          {job ? `Tu changa "${job.title}" ya está visible para la comunidad.` : "Tu changa fue publicada correctamente."}
+          {job ? `Tu changa "${job.title}" ya está visible para personas de tu zona.` : "Tu changa fue publicada correctamente."}
         </p>
+        <div className="mb-6 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-3 text-sm text-gray-600">
+          Ahora quienes estén disponibles pueden verla, entender el contexto y responderte desde Changa.
+        </div>
         <div className="space-y-3">
           {job && (
             <Button fullWidth onClick={() => navigate(`/job/${job.id}`)}>

@@ -1,34 +1,53 @@
 import { ReactNode } from "react";
+import { Button } from "./Button";
 
 interface EmptyStateCardProps {
   icon: ReactNode;
   title: string;
   description: string;
+  eyebrow?: string;
+  note?: string;
   actionLabel?: string;
   onAction?: () => void;
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
 }
 
-export function EmptyStateCard({ icon, title, description, actionLabel, onAction, secondaryActionLabel, onSecondaryAction }: EmptyStateCardProps) {
+export function EmptyStateCard({
+  icon,
+  title,
+  description,
+  eyebrow,
+  note,
+  actionLabel,
+  onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
+}: EmptyStateCardProps) {
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 p-6 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-[#F8FAFC] border border-dashed border-gray-200 mx-auto mb-4 flex items-center justify-center text-gray-400">
+    <div className="rounded-[28px] border border-gray-100 bg-white p-6 text-center shadow-[0_18px_40px_rgba(17,24,39,0.06)]">
+      {eyebrow && (
+        <div className="mb-4 inline-flex items-center rounded-full bg-[#ECFDF5] px-3 py-1 text-xs font-semibold text-[#0DAE79]">
+          {eyebrow}
+        </div>
+      )}
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] text-[#0DAE79] shadow-sm">
         {icon}
       </div>
-      <h3 className="font-bold text-[#111827] mb-1">{title}</h3>
-      <p className="text-sm text-gray-500 mb-4">{description}</p>
+      <h3 className="mb-1 text-lg font-bold text-[#111827]">{title}</h3>
+      <p className="mb-4 text-sm leading-relaxed text-gray-500">{description}</p>
+      {note && <p className="mb-4 text-xs font-medium text-gray-400">{note}</p>}
       {(actionLabel || secondaryActionLabel) && (
         <div className="flex flex-col gap-2">
           {actionLabel && (
-            <button onClick={onAction} className="w-full bg-[#0DAE79] text-white rounded-full py-2.5 text-sm font-semibold">
+            <Button fullWidth onClick={onAction}>
               {actionLabel}
-            </button>
+            </Button>
           )}
           {secondaryActionLabel && (
-            <button onClick={onSecondaryAction} className="w-full bg-[#F8FAFC] text-[#111827] rounded-full py-2.5 text-sm font-semibold border border-gray-200">
+            <Button fullWidth variant="secondary" onClick={onSecondaryAction}>
               {secondaryActionLabel}
-            </button>
+            </Button>
           )}
         </div>
       )}

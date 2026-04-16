@@ -1,6 +1,11 @@
+/**
+ * WHY: Make payments feel more intentional with stronger copy and clearer feedback for saved payment methods.
+ * CHANGED: YYYY-MM-DD
+ */
 import { ArrowLeft, CreditCard, Shield, Lock, CheckCircle, Plus, Smartphone, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { Badge } from "../components/Badge";
 import { Input } from "../components/Input";
 import { useAppState } from "../hooks/useAppState";
@@ -18,19 +23,19 @@ export function Payments() {
       <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={24} className="text-[#111827]" /></button>
-          <div className="flex-1"><h1 className="text-xl font-bold text-[#111827]">Pagos seguros</h1><p className="text-sm text-gray-500 mt-0.5">Métodos de pago y seguridad</p></div>
+          <div className="flex-1"><h1 className="text-xl font-bold text-[#111827]">Pagos seguros</h1><p className="text-sm text-gray-500 mt-0.5">Métodos guardados, movimientos y señales de protección.</p></div>
         </div>
       </div>
 
       <div className="px-6 py-6">
         <div className="bg-gradient-to-br from-[#0DAE79] via-[#0B9A6B] to-[#087A55] rounded-3xl p-6 text-white shadow-xl">
-          <div className="flex items-start gap-4 mb-4"><div className="bg-white/20 p-3 rounded-2xl"><Shield size={28} className="text-white" /></div><div><h2 className="font-bold text-xl mb-1">Protección total</h2><p className="text-white/90 text-sm">Tus pagos están encriptados y protegidos.</p></div></div>
+          <div className="flex items-start gap-4 mb-4"><div className="bg-white/20 p-3 rounded-2xl"><Shield size={28} className="text-white" /></div><div><h2 className="font-bold text-xl mb-1">Protección total</h2><p className="text-white/90 text-sm">Tus pagos se gestionan con una experiencia clara, protegida y pensada para generar confianza.</p></div></div>
           <div className="grid grid-cols-2 gap-3"><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">SSL seguro</p></div><div className="bg-white/10 rounded-2xl p-3 border border-white/20"><CheckCircle size={18} className="mb-1" /><p className="text-sm font-semibold">Anti fraude</p></div></div>
         </div>
       </div>
 
       <div className="px-6 mb-6">
-        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Tus tarjetas</h2><p className="text-sm text-gray-500 mt-0.5">Métodos de pago guardados</p></div><button onClick={() => setOpenAdd(true)} className="text-[#0DAE79] text-sm font-semibold flex items-center gap-1.5 bg-green-50 px-4 py-2 rounded-full"><Plus size={16} />Agregar</button></div>
+        <div className="flex items-center justify-between mb-4"><div><h2 className="font-bold text-[#111827] text-lg">Tus métodos</h2><p className="text-sm text-gray-500 mt-0.5">Guardá opciones para pagar más rápido cuando cierres una changa.</p></div><button onClick={() => setOpenAdd(true)} className="text-[#0DAE79] text-sm font-semibold flex items-center gap-1.5 bg-green-50 px-4 py-2 rounded-full"><Plus size={16} />Agregar</button></div>
         <div className="space-y-3">
           {paymentMethods.map((method) => (
             <div key={method.id} className={`bg-gradient-to-br ${method.colorClass} rounded-3xl p-6 shadow-lg text-white`}>
@@ -39,7 +44,7 @@ export function Payments() {
               <div className="flex items-center justify-between text-sm"><p className="text-white/80">{method.type}</p><p className="font-semibold">{method.expiry}</p></div>
             </div>
           ))}
-          {paymentMethods.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">No tenés métodos de pago todavía.</div>}
+          {paymentMethods.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no guardaste métodos. Sumá uno para tener una experiencia más rápida al cerrar una changa.</div>}
         </div>
       </div>
 
@@ -61,7 +66,7 @@ export function Payments() {
             </div>
           );
         })}
-        {transactions.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">No hay movimientos todavía.</div>}
+        {transactions.length === 0 && <div className="bg-white rounded-3xl p-6 border border-gray-100 text-center text-sm text-gray-500">Todavía no hay movimientos. Cuando empieces a cerrar changas y pagos, el historial va a aparecer acá.</div>}
       </div>
 
       {openAdd && (
@@ -73,7 +78,34 @@ export function Payments() {
             </select>
             <Input placeholder="Últimos 4 dígitos" value={last4} onChange={setLast4} />
             <Input placeholder="Vencimiento (MM/AA)" value={expiry} onChange={setExpiry} />
-            <button onClick={() => { if (last4.length === 4 && expiry) { addPaymentMethod({ type, last4, expiry, holderName: "GERONIMO MENDEZ", isDefault: paymentMethods.length === 0 }); setOpenAdd(false); setLast4(""); setExpiry(""); } }} className="w-full bg-[#0DAE79] text-white py-3 rounded-full font-semibold disabled:bg-gray-300" disabled={last4.length !== 4 || !expiry}>Guardar</button>
+            <button
+              onClick={() => {
+                if (last4.length !== 4 || !expiry) {
+                  toast.error("Revisá los datos del método", {
+                    description: "Completá los últimos 4 dígitos y el vencimiento.",
+                  });
+                  return;
+                }
+
+                addPaymentMethod({
+                  type,
+                  last4,
+                  expiry,
+                  holderName: "GERONIMO MENDEZ",
+                  isDefault: paymentMethods.length === 0,
+                });
+                setOpenAdd(false);
+                setLast4("");
+                setExpiry("");
+                toast.success("Método guardado", {
+                  description: "Ya podés usarlo cuando cierres una changa.",
+                });
+              }}
+              className="w-full bg-[#0DAE79] text-white py-3 rounded-full font-semibold disabled:bg-gray-300"
+              disabled={last4.length !== 4 || !expiry}
+            >
+              Guardar
+            </button>
           </div>
         </div>
       )}

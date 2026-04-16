@@ -1,8 +1,13 @@
+/**
+ * WHY: Improve search clarity with stronger marketplace copy, steadier loading states, and more useful empty-state guidance.
+ * CHANGED: YYYY-MM-DD
+ */
 import { ArrowLeft, MapPin, SlidersHorizontal, SearchX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { BottomNav } from "../components/BottomNav";
 import { JobCard } from "../components/JobCard";
+import { JobCardSkeleton } from "../components/JobCardSkeleton";
 import { Input } from "../components/Input";
 import { categoryFilters } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
@@ -24,6 +29,7 @@ export function SearchResults() {
   const [sortBy, setSortBy] = useState<"distance" | "newest">("distance");
   const [showFilters, setShowFilters] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
+  const shouldShowLoadingCards = isLoading && jobs.length === 0;
 
   useEffect(() => {
     void refreshJobs({ query, category, onlyUrgent, sortBy });
@@ -35,7 +41,7 @@ export function SearchResults() {
         <div className="flex items-center gap-3 mb-5">
           <button onClick={() => navigate("/home")} className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={24} className="text-[#111827]" /></button>
           <div className="flex-1">
-            <Input placeholder="Buscar servicios..." value={query} onChange={(value) => { setQuery(value); setParams((prev) => { const next = new URLSearchParams(prev); next.set("q", value); return next; }); }} />
+            <Input placeholder="Buscar changas, oficios o categorías" value={query} onChange={(value) => { setQuery(value); setParams((prev) => { const next = new URLSearchParams(prev); next.set("q", value); return next; }); }} />
           </div>
         </div>
 
@@ -58,29 +64,56 @@ export function SearchResults() {
         </div>
       </div>
 
-      <div className="px-6 py-5"><h2 className="font-bold text-[#111827] text-lg">{isLoading ? "Buscando..." : `${jobs.length} resultados`}</h2></div>
+      <div className="px-6 py-5">
+        <h2 className="font-bold text-[#111827] text-lg">
+          {isLoading ? "Buscando changas..." : `${jobs.length} resultados`}
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          {selectedLocation
+            ? `Resultados priorizados para ${selectedLocation}.`
+            : "Explorá oportunidades por categoría, urgencia o cercanía."}
+        </p>
+      </div>
 
       {errorMessage && <div className="mx-6 bg-white rounded-3xl border border-gray-100 p-4 text-sm text-gray-500 mb-4">{errorMessage}</div>}
 
       <div className="px-6 space-y-3 pb-4">
-        {jobs.map((job) => (
-          <JobCard key={job.id} id={job.id} image={job.image} title={job.title} description={job.description} category={job.category} price={job.priceLabel} rating={job.rating} distance={formatDistance(job.distanceKm)} urgency={formatUrgencyLabel(job.urgency)} />
-        ))}
+        {shouldShowLoadingCards
+          ? Array.from({ length: 4 }).map((_, index) => (
+              <JobCardSkeleton key={`search-skeleton-${index}`} />
+            ))
+          : jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                id={job.id}
+                image={job.image}
+                title={job.title}
+                description={job.description}
+                category={job.category}
+                price={job.priceLabel}
+                rating={job.rating}
+                distance={formatDistance(job.distanceKm)}
+                urgency={formatUrgencyLabel(job.urgency)}
+              />
+            ))}
       </div>
 
       {jobs.length === 0 && !isLoading && (
         <div className="mx-6">
           <EmptyStateCard
             icon={<SearchX size={28} />}
-            title="No encontramos changas"
-            description="Probá con otra categoría o publicá la primera changa en tu zona."
-            actionLabel="Publicar changa"
+            eyebrow="Sin coincidencias por ahora"
+            title="No encontramos changas con esos filtros"
+            description="Probá con otra categoría, ampliá la búsqueda o publicá una tarea para activar movimiento en tu zona."
+            note="Los resultados cambian rápido cuando entran nuevas publicaciones y respuestas cercanas."
+            actionLabel="Publicar una changa"
             onAction={() => navigate("/publish")}
             secondaryActionLabel="Limpiar búsqueda"
             onSecondaryAction={() => {
               setQuery("");
               setCategory("Todos");
               setOnlyUrgent(false);
+              setParams(new URLSearchParams());
             }}
           />
         </div>

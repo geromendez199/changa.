@@ -47,7 +47,7 @@ interface AppStateValue {
   saveUserProfile: (input: SaveUserProfileInput) => Promise<{ ok: boolean; message: string }>;
   addPublishedJob: (input: NewJobInput) => Promise<Job | null>;
   updateApplicationStatus: (applicationId: string, status: Application["status"]) => void;
-  sendMessage: (conversationId: string, content: string) => Promise<void>;
+  sendMessage: (conversationId: string, content: string) => Promise<{ ok: boolean; message?: string }>;
   addPaymentMethod: (method: Omit<PaymentMethod, "id" | "colorClass">) => void;
   refreshJobs: (params?: SearchJobsParams) => Promise<void>;
   loadJobById: (id: string) => Promise<Job | null>;

@@ -1,12 +1,17 @@
+/**
+ * WHY: Reframe publishing as posting a local task request, with clearer Spanish copy, correct step count, and polished confirmations.
+ * CHANGED: YYYY-MM-DD
+ */
 import { ArrowLeft, Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { jobCategories } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 
-const totalSteps = 5;
+const totalSteps = 4;
 
 export function PublishJob() {
   const navigate = useNavigate();
@@ -60,13 +65,13 @@ export function PublishJob() {
   }, [form, step]);
 
   const onContinue = async () => {
-    if (step < 4) {
+    if (step < totalSteps) {
       if (!validateCurrentStep()) return;
       setStep((prev) => prev + 1);
       return;
     }
 
-    if (step === 4) {
+    if (step === totalSteps) {
       setPublishing(true);
       setSubmitError(null);
       const created = await addPublishedJob({
@@ -81,9 +86,16 @@ export function PublishJob() {
       });
       setPublishing(false);
       if (!created) {
-        setSubmitError("No pudimos publicar tu changa. Revisá tu sesión e intentá de nuevo.");
+        const message = "No pudimos publicar tu changa. Revisá tu sesión e intentá de nuevo.";
+        setSubmitError(message);
+        toast.error("No pudimos publicar tu changa", {
+          description: "Revisá los datos y probá nuevamente.",
+        });
         return;
       }
+      toast.success("Tu changa ya está publicada", {
+        description: "Ahora las personas de tu zona la pueden ver y responder.",
+      });
       navigate(`/publish/confirm/${created.id}`);
     }
   };
@@ -96,8 +108,10 @@ export function PublishJob() {
             <ArrowLeft size={24} className="text-[#111827]" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-[#111827]">Publicá tu servicio</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Completá los datos en {totalSteps} pasos</p>
+            <h1 className="text-xl font-bold text-[#111827]">Publicá una changa</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Contá qué necesitás resolver y dejalo visible en minutos.
+            </p>
           </div>
         </div>
 
@@ -115,8 +129,12 @@ export function PublishJob() {
       <div className="px-6 py-8 space-y-6">
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-bold text-[#111827] mb-2">¿Qué tipo de servicio ofrecés?</h2>
-            <p className="text-gray-600 mb-4">Elegí la categoría que mejor describa tu changa</p>
+            <h2 className="text-2xl font-bold text-[#111827] mb-2">
+              ¿Qué tipo de ayuda necesitás?
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Elegí la categoría que mejor describa la tarea que querés resolver.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               {jobCategories.map((category) => (
                 <button
@@ -134,12 +152,19 @@ export function PublishJob() {
 
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Contanos de tu trabajo</h2>
-            <Input placeholder="Título del servicio" value={form.title} onChange={(value) => setForm((prev) => ({ ...prev, title: value }))} />
+            <h2 className="text-2xl font-bold text-[#111827]">Contanos qué necesitás</h2>
+            <p className="text-gray-600">
+              Un buen título y una descripción clara te ayudan a recibir respuestas más útiles.
+            </p>
+            <Input
+              placeholder="Ej: Arreglar una pérdida en la cocina"
+              value={form.title}
+              onChange={(value) => setForm((prev) => ({ ...prev, title: value }))}
+            />
             <textarea
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="Descripción detallada"
+              placeholder="Explicá qué necesitás, si hay urgencia, materiales o algún detalle importante."
               className="w-full bg-[#F8FAFC] border border-gray-200 rounded-2xl py-3.5 px-4 min-h-36 focus:outline-none focus:ring-2 focus:ring-[#0DAE79]"
             />
           </div>
@@ -147,10 +172,13 @@ export function PublishJob() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Detalles y disponibilidad</h2>
+            <h2 className="text-2xl font-bold text-[#111827]">Ubicación, presupuesto y tiempos</h2>
+            <p className="text-gray-600">
+              Mientras más claro seas con la zona, el presupuesto y el momento ideal, mejores respuestas vas a recibir.
+            </p>
             <Input placeholder="Ubicación (ej: Palermo, CABA)" value={form.location} onChange={(value) => setForm((prev) => ({ ...prev, location: value }))} />
-            <Input placeholder="Precio estimado en ARS" type="number" value={form.price} onChange={(value) => setForm((prev) => ({ ...prev, price: value }))} />
-            <Input placeholder="Disponibilidad (ej: Lunes a viernes 9-18)" value={form.availability} onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))} />
+            <Input placeholder="Presupuesto estimado en ARS" type="number" value={form.price} onChange={(value) => setForm((prev) => ({ ...prev, price: value }))} />
+            <Input placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)" value={form.availability} onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))} />
             <div className="bg-white rounded-2xl p-4 border border-gray-100">
               <p className="text-sm font-semibold text-[#111827] mb-2">Urgencia</p>
               <div className="flex gap-2">
@@ -169,17 +197,23 @@ export function PublishJob() {
 
         {step === 4 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Imagen (opcional)</h2>
-            <Input placeholder="URL de imagen del trabajo" value={form.image} onChange={(value) => setForm((prev) => ({ ...prev, image: value }))} />
+            <h2 className="text-2xl font-bold text-[#111827]">Confirmá tu publicación</h2>
+            <p className="text-gray-600">
+              Podés sumar una foto para dar más contexto. Si no tenés una, igual podés publicar.
+            </p>
+            <Input placeholder="URL de imagen opcional" value={form.image} onChange={(value) => setForm((prev) => ({ ...prev, image: value }))} />
             <div className="bg-white rounded-3xl p-5 border border-gray-100">
-              <h3 className="font-bold text-[#111827] mb-3">Confirmá tu publicación</h3>
+              <h3 className="font-bold text-[#111827] mb-3">Así se va a ver tu changa</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li><strong>Categoría:</strong> {form.category}</li>
                 <li><strong>Título:</strong> {form.title}</li>
                 <li><strong>Ubicación:</strong> {form.location}</li>
-                <li><strong>Precio:</strong> ${Number(form.price || 0).toLocaleString("es-AR")}</li>
-                <li><strong>Disponibilidad:</strong> {form.availability}</li>
+                <li><strong>Presupuesto:</strong> ${Number(form.price || 0).toLocaleString("es-AR")}</li>
+                <li><strong>Cuándo lo necesitás:</strong> {form.availability}</li>
               </ul>
+              <div className="mt-4 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-3 text-sm text-gray-600">
+                Las personas van a ver tu descripción, la zona general y el presupuesto para responderte con más claridad.
+              </div>
             </div>
           </div>
         )}
@@ -196,8 +230,8 @@ export function PublishJob() {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-5 max-w-md mx-auto shadow-2xl">
-        <Button variant="primary" size="lg" fullWidth disabled={!canProceed || publishing} onClick={() => void onContinue()} icon={step === 4 ? <Check size={18} /> : undefined}>
-          {step === 4 ? (publishing ? "Publicando..." : "Publicar changa") : "Continuar"}
+        <Button variant="primary" size="lg" fullWidth disabled={!canProceed || publishing} onClick={() => void onContinue()} icon={step === totalSteps ? <Check size={18} /> : undefined}>
+          {step === totalSteps ? (publishing ? "Publicando..." : "Publicar changa") : "Continuar"}
         </Button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Shield } from "lucide-react";
 import { EmptyStateCard } from "../components/EmptyStateCard";
 import { useNavigate } from "react-router";
 import { BottomNav } from "../components/BottomNav";
@@ -26,7 +26,9 @@ export function Chat() {
       <div className="bg-white px-6 pt-14 pb-6 shadow-sm">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-[#111827]">Mensajes</h1>
-          <p className="text-sm text-gray-500 mt-1">{rows.filter((r) => r.unreadCount > 0).length} conversaciones nuevas</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {rows.filter((r) => r.unreadCount > 0).length} conversaciones con novedades
+          </p>
         </div>
       </div>
 
@@ -38,7 +40,15 @@ export function Chat() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-1">
                   <div>
-                    <h3 className="font-bold text-[#111827] text-base">{otherUser?.name ?? "Usuario"}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-[#111827] text-base">{otherUser?.name ?? "Usuario"}</h3>
+                      {otherUser?.verified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#ECFDF5] px-2 py-0.5 text-[11px] font-semibold text-[#0DAE79]">
+                          <Shield size={10} />
+                          Verificado
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 mt-0.5">{relatedJob?.title ?? "Trabajo"}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -57,8 +67,10 @@ export function Chat() {
         <div className="px-6 py-8">
           <EmptyStateCard
             icon={<MessageCircle size={28} />}
-            title="No tenés conversaciones"
-            description="Cuando te contacten por una changa, las conversaciones van a aparecer acá."
+            eyebrow="Todavía no arrancaste chats"
+            title="Tus conversaciones van a aparecer acá"
+            description="Cuando publiques una changa o te contacten por una oportunidad, vas a poder seguir todo desde este inbox."
+            note="Tener el contexto de la tarea y el historial en un mismo lugar ayuda a coordinar mejor."
             actionLabel="Explorar changas"
             onAction={() => navigate("/search")}
           />
