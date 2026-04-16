@@ -48,6 +48,12 @@ interface AppStateValue {
   setManualLocation: (location: string) => Promise<void>;
   saveUserProfile: (input: SaveUserProfileInput) => Promise<{ ok: boolean; message: string }>;
   addPublishedJob: (input: NewJobInput) => Promise<Job | null>;
+  updatePublishedJob: (
+    jobId: string,
+    input: NewJobInput,
+  ) => Promise<{ ok: boolean; message: string; job: Job | null }>;
+  removePublishedJob: (jobId: string) => Promise<{ ok: boolean; message: string }>;
+  withdrawMyApplication: (applicationId: string) => Promise<{ ok: boolean; message: string }>;
   sendMessage: (conversationId: string, content: string) => Promise<{ ok: boolean; message?: string }>;
   refreshJobs: (params?: SearchJobsParams) => Promise<void>;
   loadJobById: (id: string) => Promise<Job | null>;
@@ -76,6 +82,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     loadJobById,
     loadAuthenticatedJobData,
     addPublishedJob,
+    updatePublishedJob,
+    removePublishedJob,
+    withdrawMyApplication,
     resetUserJobState,
   } = useJobsState({ userId: effectiveUserId, pushError });
   const {
@@ -284,6 +293,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setManualLocation,
       saveUserProfile,
       addPublishedJob,
+      updatePublishedJob,
+      removePublishedJob,
+      withdrawMyApplication,
       sendMessage,
       refreshJobs,
       loadJobById,
@@ -313,6 +325,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setManualLocation,
       saveUserProfile,
       addPublishedJob,
+      updatePublishedJob,
+      removePublishedJob,
+      withdrawMyApplication,
       sendMessage,
       refreshJobs,
       loadJobById,

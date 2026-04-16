@@ -3,23 +3,28 @@
  * CHANGED: YYYY-MM-DD
  */
 import { BottomNav } from "../components/BottomNav";
-import { MapPin, Clock, CheckCircle, AlertCircle, Star, BriefcaseBusiness, Send } from "lucide-react";
+import { MapPin, Clock, CheckCircle, AlertCircle, Star, BriefcaseBusiness, Send, MessageCircle, Pencil, Trash2, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "../components/Badge";
 import { useAppState } from "../hooks/useAppState";
 import { EmptyStateCard } from "../components/EmptyStateCard";
 import { useNavigate } from "react-router";
-import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function MyJobs() {
   const navigate = useNavigate();
-  const { myJobs, applications, jobs, dataSource } = useAppState();
+  const {
+    myJobs,
+    applications,
+    jobs,
+    conversations,
+    currentUserId,
+    removePublishedJob,
+    withdrawMyApplication,
+  } = useAppState();
   const [activeTab, setActiveTab] = useState<"publicados" | "postulados" | "completados">("publicados");
-  const isPreview = dataSource === "fallback";
-
   const appliedRows = useMemo(
     () => applications.map((application) => ({ application, job: jobs.find((j) => j.id === application.jobId) })).filter((item) => item.job),
     [applications, jobs],
@@ -65,19 +70,6 @@ export function MyJobs() {
       </ScreenHeader>
 
       <div className="px-6 py-6 space-y-3">
-        {isPreview ? (
-          <PreviewModeNotice
-            description={`${getFallbackPreviewMessage("mis trabajos")} El historial y los estados visibles son de ejemplo y las acciones sensibles siguen deshabilitadas.`}
-          />
-        ) : null}
-
-        {activeTab === "postulados" && appliedRows.length > 0 ? (
-          <SurfaceCard tone="soft" padding="sm" className="text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-            El seguimiento completo de postulaciones dentro de la app todavía se está terminando.
-            Por ahora mostramos el estado disponible sin simular cambios manuales.
-          </SurfaceCard>
-        ) : null}
-
         {activeTab === "publicados" && myJobs.map((job) => (
           <SurfaceCard key={job.id} padding="none" className="overflow-hidden">
             <div className="flex gap-4 p-4">
@@ -95,6 +87,37 @@ export function MyJobs() {
                 </div>
               </div>
               <p className="text-base font-bold text-[var(--app-brand)]">{job.priceLabel}</p>
+            </div>
+            <div className="flex gap-2 border-t border-[var(--app-border)] px-4 pb-4 pt-3">
+              <button
+                onClick={() => navigate(`/publish?edit=${job.id}`)}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] px-3 py-3 text-sm font-semibold text-[var(--app-text)]"
+              >
+                <Pencil size={15} />
+                Editar
+              </button>
+              <button
+                onClick={async () => {
+                  const confirmed = window.confirm("¿Querés eliminar esta changa?");
+                  if (!confirmed) return;
+
+                  const result = await removePublishedJob(job.id);
+                  if (!result.ok) {
+                    toast.error("No pudimos eliminar la changa", {
+                      description: result.message,
+                    });
+                    return;
+                  }
+
+                  toast.success("Changa eliminada", {
+                    description: result.message,
+                  });
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-200 px-3 py-3 text-sm font-semibold text-red-600"
+              >
+                <Trash2 size={15} />
+                Eliminar
+              </button>
             </div>
           </SurfaceCard>
         ))}
@@ -119,10 +142,61 @@ export function MyJobs() {
                     ? "Rechazada"
                     : "Enviada"}
               </Badge>
+              <button
+                onClick={() => navigate(`/job/${job!.id}`)}
+                className="text-xs font-semibold text-[var(--app-brand)]"
+              >
+                Ver aviso
+              </button>
+            </div>
+            <div className="mt-4 flex gap-2">
+              {application.status === "aceptada" ? (
+                <button
+                  onClick={() => {
+                    const conversation = conversations.find(
+                      (item) =>
+                        item.jobId === job!.id && item.participantIds.includes(currentUserId ?? ""),
+                    );
+
+                    if (!conversation) {
+                      toast("Chat pendiente", {
+                        description: "La conversación se habilita cuando ambas partes ya están coordinando dentro de la app.",
+                      });
+                      return;
+                    }
+
+                    navigate(`/chat/${conversation.id}`);
+                  }}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--app-brand)] px-3 py-3 text-sm font-semibold text-white"
+                >
+                  <MessageCircle size={15} />
+                  Abrir chat
+                </button>
+              ) : null}
+
               {application.status === "enviada" ? (
-                <p className="text-right text-xs font-medium leading-relaxed text-[var(--app-text-muted)]">
-                  La actualización manual del estado se suma en una próxima etapa.
-                </p>
+                <button
+                  onClick={async () => {
+                    const confirmed = window.confirm("¿Querés retirarte de esta postulación?");
+                    if (!confirmed) return;
+
+                    const result = await withdrawMyApplication(application.id);
+                    if (!result.ok) {
+                      toast.error("No pudimos retirarte", {
+                        description: result.message,
+                      });
+                      return;
+                    }
+
+                    toast.success("Postulación retirada", {
+                      description: result.message,
+                    });
+                  }}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] px-3 py-3 text-sm font-semibold text-[var(--app-text)]"
+                >
+                  <XCircle size={15} />
+                  Retirarme
+                </button>
               ) : null}
             </div>
           </SurfaceCard>
@@ -149,10 +223,8 @@ export function MyJobs() {
         {tabData[activeTab].length === 0 && (
           <EmptyStateCard
             icon={activeTab === "publicados" ? <BriefcaseBusiness size={28} /> : activeTab === "postulados" ? <Send size={28} /> : <CheckCircle size={28} />}
-            eyebrow={activeTab === "publicados" ? "Sin publicaciones todavía" : activeTab === "postulados" ? "Todavía no te postulaste" : "Nada completado aún"}
             title={activeTab === "publicados" ? "Todavía no publicaste changas" : activeTab === "postulados" ? "No tenés postulaciones activas" : "Tus trabajos completados van a aparecer acá"}
             description={activeTab === "publicados" ? "Publicá tu primera changa para empezar a recibir respuestas de personas de tu zona." : activeTab === "postulados" ? "Explorá oportunidades y hacé tu primera postulación con un mensaje claro y confiable." : "Cuando cierres trabajos y acumules reseñas, esta sección va a mostrar tu historial."}
-            note={activeTab === "publicados" ? "Una publicación clara suele recibir mejores respuestas y más rápido." : undefined}
             actionLabel={activeTab === "publicados" ? "Publicar una changa" : "Explorar changas"}
             onAction={() => navigate(activeTab === "publicados" ? "/publish" : "/search")}
           />

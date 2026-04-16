@@ -3,8 +3,8 @@
  * CHANGED: YYYY-MM-DD
  */
 import { Check } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
@@ -20,8 +20,12 @@ const totalSteps = 4;
 
 export function PublishJob() {
   const navigate = useNavigate();
-  const { addPublishedJob, dataSource } = useAppState();
+  const [searchParams] = useSearchParams();
+  const { addPublishedJob, updatePublishedJob, myJobs, dataSource } = useAppState();
   const isPreview = dataSource === "fallback";
+  const editingJobId = searchParams.get("edit");
+  const jobToEdit = editingJobId ? myJobs.find((job) => job.id === editingJobId) ?? null : null;
+  const isEditing = Boolean(jobToEdit);
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
@@ -37,6 +41,21 @@ export function PublishJob() {
     availability: "",
     image: "",
   });
+
+  useEffect(() => {
+    if (!jobToEdit) return;
+
+    setForm({
+      category: jobToEdit.category,
+      title: jobToEdit.title,
+      description: jobToEdit.description,
+      location: jobToEdit.location,
+      price: String(jobToEdit.priceValue),
+      urgency: jobToEdit.urgency,
+      availability: jobToEdit.availability,
+      image: jobToEdit.image,
+    });
+  }, [jobToEdit]);
 
   const progressPct = Math.round((step / totalSteps) * 100);
 
@@ -80,7 +99,7 @@ export function PublishJob() {
     if (step === totalSteps) {
       setPublishing(true);
       setSubmitError(null);
-      const created = await addPublishedJob({
+      const payload = {
         category: form.category || "Otros",
         title: form.title,
         description: form.description,
@@ -89,7 +108,29 @@ export function PublishJob() {
         availability: form.availability,
         urgency: form.urgency,
         image: form.image,
-      });
+      };
+
+      if (isEditing && jobToEdit) {
+        const result = await updatePublishedJob(jobToEdit.id, payload);
+        setPublishing(false);
+
+        if (!result.ok || !result.job) {
+          const message = result.message || "No pudimos guardar los cambios de tu changa.";
+          setSubmitError(message);
+          toast.error("No pudimos guardar los cambios", {
+            description: message,
+          });
+          return;
+        }
+
+        toast.success("Cambios guardados", {
+          description: "Tu publicación ya quedó actualizada.",
+        });
+        navigate("/my-jobs");
+        return;
+      }
+
+      const created = await addPublishedJob(payload);
       setPublishing(false);
       if (!created) {
         const message = "No pudimos publicar tu changa. Revisá tu sesión e intentá de nuevo.";
@@ -109,8 +150,12 @@ export function PublishJob() {
   return (
     <div className="app-screen pb-32">
       <ScreenHeader
-        title="Publicá una changa"
-        subtitle="Contá qué necesitás resolver y dejalo visible en minutos."
+        title={isEditing ? "Editar changa" : "Publicá una changa"}
+        subtitle={
+          isEditing
+            ? "Ajustá los datos para que siga clara y fácil de responder."
+            : "Contá qué necesitás resolver y dejalo visible en minutos."
+        }
         onBack={() => (step === 1 ? navigate(-1) : setStep((prev) => prev - 1))}
       >
         <div className="space-y-2">
@@ -278,10 +323,16 @@ export function PublishJob() {
         >
           {step === totalSteps
             ? isPreview
-              ? "Publicación real con Supabase"
+              ? isEditing
+                ? "Guardar cambios con Supabase"
+                : "Publicación real con Supabase"
               : publishing
-                ? "Publicando..."
-                : "Publicar changa"
+                ? isEditing
+                  ? "Guardando..."
+                  : "Publicando..."
+                : isEditing
+                  ? "Guardar cambios"
+                  : "Publicar changa"
             : "Continuar"}
         </Button>
       </div>

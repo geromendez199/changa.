@@ -103,11 +103,13 @@ export function Profile() {
         </SurfaceCard>
       </div>
 
-      {profile.trustIndicators.length > 0 ? (
+      {profile.trustIndicators.filter((indicator) => !indicator.toLowerCase().includes("email")).length > 0 ? (
         <div className="px-6 mb-6">
           <SurfaceCard padding="md">
             <div className="flex flex-wrap gap-2">
-              {profile.trustIndicators.map((indicator) => (
+              {profile.trustIndicators
+                .filter((indicator) => !indicator.toLowerCase().includes("email"))
+                .map((indicator) => (
                 <Badge key={indicator} variant="verified">
                   {indicator}
                 </Badge>

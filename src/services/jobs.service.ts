@@ -37,6 +37,10 @@ export interface CreateJobInput {
   image?: string;
 }
 
+export interface UpdateJobInput extends CreateJobInput {
+  id: string;
+}
+
 const DEFAULT_JOB_IMAGE =
   "https://images.unsplash.com/photo-1556911220-bff31c812dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
 
@@ -144,6 +148,66 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
     return successResult(createdJob.id ? createdJob : null);
   } catch (error) {
     return failureResult(null, normalizeError(error, "No pudimos publicar tu changa."));
+  }
+}
+
+export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Job | null>> {
+  try {
+    const validatedInput = parseWithValidation(jobCreateSchema, {
+      ...input,
+      priceValue: Math.round(input.priceValue),
+    });
+    if (shouldUseFallback()) {
+      return failureResult(null, getFallbackActionMessage("Editar una changa"));
+    }
+
+    const { data, error } = await supabase!
+      .from("jobs")
+      .update({
+        title: validatedInput.title,
+        description: validatedInput.description,
+        category: validatedInput.category,
+        location: validatedInput.location,
+        price_value: Math.round(validatedInput.priceValue),
+        availability: validatedInput.availability,
+        urgency: validatedInput.urgency,
+        image: validatedInput.image?.trim() || DEFAULT_JOB_IMAGE,
+      })
+      .eq("id", input.id)
+      .eq("posted_by_user_id", input.postedByUserId)
+      .select("*")
+      .single<JobsRow>();
+
+    if (error) throw error;
+
+    const updatedJob = mapJobRow(data);
+    return successResult(updatedJob.id ? updatedJob : null);
+  } catch (error) {
+    return failureResult(null, normalizeError(error, "No pudimos guardar los cambios de tu changa."));
+  }
+}
+
+export async function deleteJob(jobId: string, postedByUserId: string): Promise<ServiceResult<boolean>> {
+  if (!isNonEmptyString(jobId) || !isNonEmptyString(postedByUserId)) {
+    return failureResult(false, "No pudimos identificar la changa que querés eliminar.");
+  }
+
+  try {
+    if (shouldUseFallback()) {
+      return successResult(true, "fallback");
+    }
+
+    const { error } = await supabase!
+      .from("jobs")
+      .delete()
+      .eq("id", jobId)
+      .eq("posted_by_user_id", postedByUserId);
+
+    if (error) throw error;
+
+    return successResult(true);
+  } catch (error) {
+    return failureResult(false, normalizeError(error, "No pudimos eliminar tu changa."));
   }
 }
 

@@ -26,3 +26,28 @@ export async function getMyApplications(userId: string): Promise<ServiceResult<A
     return failureResult([], normalizeError(error, "No pudimos cargar tus postulaciones."));
   }
 }
+
+export async function withdrawApplication(
+  applicationId: string,
+  applicantUserId: string,
+): Promise<ServiceResult<boolean>> {
+  if (!isNonEmptyString(applicationId) || !isNonEmptyString(applicantUserId)) {
+    return failureResult(false, "No pudimos identificar la postulación.");
+  }
+
+  try {
+    if (shouldUseFallback()) return successResult(true, "fallback");
+
+    const { error } = await supabase!
+      .from("applications")
+      .delete()
+      .eq("id", applicationId)
+      .eq("applicant_user_id", applicantUserId);
+
+    if (error) throw error;
+
+    return successResult(true);
+  } catch (error) {
+    return failureResult(false, normalizeError(error, "No pudimos retirarte de esta postulación."));
+  }
+}

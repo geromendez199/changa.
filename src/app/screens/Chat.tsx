@@ -10,12 +10,10 @@ import { BottomNav } from "../components/BottomNav";
 import { useAppState } from "../hooks/useAppState";
 import { formatRelative } from "../utils/format";
 import { Badge } from "../components/Badge";
-import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SkeletonBlock } from "../components/SkeletonBlock";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Chat() {
   const navigate = useNavigate();
@@ -33,7 +31,13 @@ export function Chat() {
       const lastMessage = conversationMessages[conversationMessages.length - 1];
       const unreadCount = conversationMessages.filter((m) => m.senderUserId !== currentUserId && !m.read).length;
       const relatedJob = jobs.find((job) => job.id === conv.jobId);
-      return { conv, otherUser, lastMessage, unreadCount, relatedJob };
+      const otherRole =
+        relatedJob && otherUser
+          ? relatedJob.postedByUserId === otherUser.id
+            ? "Cliente"
+            : "Trabajador"
+          : null;
+      return { conv, otherUser, lastMessage, unreadCount, relatedJob, otherRole };
     })
     .sort((a, b) => new Date(b.conv.lastMessageAt).getTime() - new Date(a.conv.lastMessageAt).getTime());
 
@@ -45,12 +49,6 @@ export function Chat() {
       />
 
       <div className="space-y-3 px-6 py-4">
-        {isPreview ? (
-          <PreviewModeNotice
-            description={`${getFallbackPreviewMessage("el inbox")} Podés revisar conversaciones y contexto, pero el envío real sigue deshabilitado.`}
-          />
-        ) : null}
-
         {isLoading && rows.length === 0
           ? Array.from({ length: 4 }).map((_, index) => (
               <SurfaceCard key={`chat-skeleton-${index}`} padding="md">
@@ -69,7 +67,7 @@ export function Chat() {
             ))
           : null}
 
-        {rows.map(({ conv, otherUser, lastMessage, unreadCount, relatedJob }) => (
+        {rows.map(({ conv, otherUser, lastMessage, unreadCount, relatedJob, otherRole }) => (
           <button
             key={conv.id}
             onClick={() => navigate(`/chat/${conv.id}`)}
@@ -91,6 +89,11 @@ export function Chat() {
                       <h3 className="text-base font-bold tracking-[-0.02em] text-[var(--app-text)]">
                         {otherUser?.name ?? "Usuario"}
                       </h3>
+                      {otherRole ? (
+                        <Badge variant="default" size="sm">
+                          {otherRole}
+                        </Badge>
+                      ) : null}
                       {otherUser?.verified && (
                         <Badge variant="verified" size="sm" icon={<Shield size={10} />}>
                           Verificado
@@ -131,10 +134,8 @@ export function Chat() {
         <div className="px-6 py-8">
           <EmptyStateCard
             icon={<MessageCircle size={28} />}
-            eyebrow="Todavía no arrancaste chats"
-            title="Tus conversaciones van a aparecer acá"
-            description="Cuando publiques una changa o te contacten por una oportunidad, vas a poder seguir todo desde este inbox."
-            note="Tener el contexto de la tarea y el historial en un mismo lugar ayuda a coordinar mejor."
+            title="Todavía no tenés conversaciones"
+            description="Cuando una changa avance, el chat entre cliente y trabajador va a aparecer acá."
             actionLabel="Explorar changas"
             onAction={() => navigate("/search")}
           />

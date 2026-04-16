@@ -1,20 +1,18 @@
 /**
- * WHY: Make chat feel more intentional with clearer context and reliable feedback after sending messages.
+ * WHY: Make the chat easier to understand with clear client-worker context and a simpler, more useful conversation layout.
  * CHANGED: YYYY-MM-DD
  */
-import { CircleHelp, Flag, Send, Shield } from "lucide-react";
+import { MapPin, Send, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "../../components/Badge";
 import { Input } from "../../components/Input";
-import { PreviewModeNotice } from "../../components/PreviewModeNotice";
 import { ScreenHeader } from "../../components/ScreenHeader";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState } from "../../hooks/useAppState";
 import { formatRelative } from "../../utils/format";
-import { getFallbackPreviewMessage } from "../../../services/service.utils";
 
 export function ChatDetail() {
   const navigate = useNavigate();
@@ -51,6 +49,17 @@ export function ChatDetail() {
   const otherUserId = conversation.participantIds.find((item) => item !== currentUserId)!;
   const otherUser = profiles.find((u) => u.id === otherUserId);
   const relatedJob = jobs.find((job) => job.id === conversation.jobId);
+  const currentUserRole = relatedJob
+    ? relatedJob.postedByUserId === currentUserId
+      ? "Cliente"
+      : "Trabajador"
+    : null;
+  const otherUserRole =
+    relatedJob && otherUser
+      ? relatedJob.postedByUserId === otherUser.id
+        ? "Cliente"
+        : "Trabajador"
+      : null;
 
   return (
     <div className="app-screen flex min-h-screen flex-col pb-24">
@@ -68,53 +77,46 @@ export function ChatDetail() {
           />
           <div className="flex-1">
             <div className="flex items-center gap-2">
+              {otherUserRole ? <Badge variant="default" size="sm">{otherUserRole}</Badge> : null}
               {otherUser?.verified ? (
                 <Badge variant="verified" size="sm" icon={<Shield size={10} />}>
                   Verificado
                 </Badge>
               ) : null}
-              <p className="text-[11px] font-semibold text-[var(--app-brand)]">
-                Coordiná por este chat para mantener el contexto de la changa.
+            </div>
+            {currentUserRole ? (
+              <p className="mt-1 text-xs text-[var(--app-text-muted)]">
+                Vos actuás como {currentUserRole.toLowerCase()} en esta changa.
               </p>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button
-                onClick={() =>
-                  toast("Centro de ayuda", {
-                    description: "La guía de seguridad del chat se va a sumar en una próxima etapa.",
-                  })
-                }
-                className="rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-1.5 text-[11px] font-semibold text-[var(--app-text)]"
-              >
-                <span className="inline-flex items-center gap-1">
-                  <CircleHelp size={12} />
-                  Ayuda
-                </span>
-              </button>
-              <button
-                onClick={() =>
-                  toast("Reporte registrado", {
-                    description: "El flujo completo para reportar conversaciones se va a sumar en una próxima etapa.",
-                  })
-                }
-                className="rounded-full bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700"
-              >
-                <span className="inline-flex items-center gap-1">
-                  <Flag size={12} />
-                  Reportar
-                </span>
-              </button>
-            </div>
+            ) : null}
           </div>
         </div>
       </ScreenHeader>
 
       <div className="flex-1 px-6 py-4 space-y-3 overflow-y-auto">
-        {isPreview ? (
-          <PreviewModeNotice
-            compact
-            description={`${getFallbackPreviewMessage("esta conversación")} El envío de mensajes reales sigue deshabilitado.`}
-          />
+        {relatedJob ? (
+          <SurfaceCard tone="muted" padding="md" className="shadow-none">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--app-brand)]">
+                  Changa en conversación
+                </p>
+                <h2 className="mt-1 text-sm font-bold text-[var(--app-text)]">{relatedJob.title}</h2>
+                <div className="mt-2 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
+                  <MapPin size={12} />
+                  <span>{relatedJob.location}</span>
+                  <span>•</span>
+                  <span>{relatedJob.priceLabel}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate(`/job/${relatedJob.id}`)}
+                className="text-xs font-semibold text-[var(--app-brand)]"
+              >
+                Ver aviso
+              </button>
+            </div>
+          </SurfaceCard>
         ) : null}
 
         {conversationMessages.map((message) => {
@@ -142,7 +144,7 @@ export function ChatDetail() {
         })}
         {conversationMessages.length === 0 && (
           <SurfaceCard tone="muted" padding="md" className="py-10 text-center text-sm text-[var(--app-text-muted)] shadow-none">
-            Todavía no empezaron a coordinar. El primer mensaje suele destrabar rápido una changa.
+            Arranquen por lo importante: horario, alcance y precio final.
           </SurfaceCard>
         )}
       </div>
@@ -157,8 +159,8 @@ export function ChatDetail() {
         <button
           onClick={async () => {
             if (isPreview) {
-              toast("Envío real deshabilitado", {
-                description: "En la vista previa podés revisar la conversación, pero no enviar mensajes nuevos.",
+              toast("Vista previa", {
+                description: "El chat funciona como demo local y no envía mensajes reales.",
               });
               return;
             }

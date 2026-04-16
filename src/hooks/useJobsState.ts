@@ -3,16 +3,18 @@
  * CHANGED: YYYY-MM-DD
  */
 import { useCallback, useState } from "react";
-import { getMyApplications } from "../services/applications.service";
+import { getMyApplications, withdrawApplication } from "../services/applications.service";
 import {
   createJob,
+  deleteJob,
   getFeaturedJobs,
   getJobById,
   getMyJobs,
   searchJobs,
   SearchJobsParams,
+  updateJob,
 } from "../services/jobs.service";
-import { successResult } from "../services/service.utils";
+import { shouldUseFallback, successResult } from "../services/service.utils";
 import { Application, Job } from "../types/domain";
 
 export interface NewJobInput {
@@ -106,6 +108,111 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     [pushError, userId],
   );
 
+  const updatePublishedJob = useCallback(
+    async (jobId: string, input: NewJobInput) => {
+      if (!userId) {
+        const message = "Necesitás iniciar sesión para editar.";
+        pushError(message);
+        return { ok: false, message, job: null as Job | null };
+      }
+
+      const existingJob = myJobs.find((job) => job.id === jobId);
+      if (!existingJob) {
+        const message = "No encontramos esa changa para editar.";
+        pushError(message);
+        return { ok: false, message, job: null as Job | null };
+      }
+
+      if (shouldUseFallback()) {
+        const updatedJob: Job = {
+          ...existingJob,
+          ...input,
+          priceValue: Math.round(input.priceValue),
+          priceLabel: `$${Math.round(input.priceValue).toLocaleString("es-AR")}`,
+          image: input.image?.trim() || existingJob.image,
+        };
+
+        setJobs((prev) => prev.map((job) => (job.id === jobId ? updatedJob : job)));
+        setMyJobs((prev) => prev.map((job) => (job.id === jobId ? updatedJob : job)));
+        return { ok: true, message: "Cambios guardados en esta vista previa.", job: updatedJob };
+      }
+
+      const result = await updateJob({ id: jobId, postedByUserId: userId, ...input });
+      if (!result.data) {
+        const message = result.error ?? "No pudimos guardar los cambios.";
+        pushError(message);
+        return { ok: false, message, job: null as Job | null };
+      }
+
+      setJobs((prev) => prev.map((job) => (job.id === jobId ? result.data! : job)));
+      setMyJobs((prev) => prev.map((job) => (job.id === jobId ? result.data! : job)));
+      return { ok: true, message: "Changa actualizada.", job: result.data };
+    },
+    [myJobs, pushError, userId],
+  );
+
+  const removePublishedJob = useCallback(
+    async (jobId: string) => {
+      if (!userId) {
+        const message = "Necesitás iniciar sesión para eliminar.";
+        pushError(message);
+        return { ok: false, message };
+      }
+
+      const result = shouldUseFallback()
+        ? successResult(true, "fallback")
+        : await deleteJob(jobId, userId);
+
+      if (!result.data) {
+        const message = result.error ?? "No pudimos eliminar la changa.";
+        pushError(message);
+        return { ok: false, message };
+      }
+
+      setJobs((prev) => prev.filter((job) => job.id !== jobId));
+      setMyJobs((prev) => prev.filter((job) => job.id !== jobId));
+      setApplications((prev) => prev.filter((application) => application.jobId !== jobId));
+      return {
+        ok: true,
+        message:
+          result.source === "fallback"
+            ? "La changa se ocultó en esta vista previa."
+            : "La changa se eliminó correctamente.",
+      };
+    },
+    [pushError, userId],
+  );
+
+  const withdrawMyApplication = useCallback(
+    async (applicationId: string) => {
+      if (!userId) {
+        const message = "Necesitás iniciar sesión para retirarte.";
+        pushError(message);
+        return { ok: false, message };
+      }
+
+      const result = shouldUseFallback()
+        ? successResult(true, "fallback")
+        : await withdrawApplication(applicationId, userId);
+
+      if (!result.data) {
+        const message = result.error ?? "No pudimos retirarte de la postulación.";
+        pushError(message);
+        return { ok: false, message };
+      }
+
+      setApplications((prev) => prev.filter((application) => application.id !== applicationId));
+      return {
+        ok: true,
+        message:
+          result.source === "fallback"
+            ? "Te retiraste en esta vista previa."
+            : "Te retiraste de la postulación.",
+      };
+    },
+    [pushError, userId],
+  );
+
   const resetUserJobState = useCallback(() => {
     setMyJobs([]);
     setApplications([]);
@@ -119,6 +226,9 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
     loadJobById,
     loadAuthenticatedJobData,
     addPublishedJob,
+    updatePublishedJob,
+    removePublishedJob,
+    withdrawMyApplication,
     resetUserJobState,
   };
 }
