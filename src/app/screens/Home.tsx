@@ -13,7 +13,7 @@ import { JobCard } from "../components/JobCard";
 import { JobCardSkeleton } from "../components/JobCardSkeleton";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
-import { categoryFilters } from "../constants/catalog";
+import { primaryCategoryFilters } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 
@@ -86,7 +86,7 @@ export function Home() {
 
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {categoryFilters.map((cat, idx) => (
+          {primaryCategoryFilters.map((cat, idx) => (
             <button
               key={cat}
               onClick={() => navigate(`/search?category=${encodeURIComponent(cat)}`)}
@@ -99,6 +99,12 @@ export function Home() {
               <span className="font-semibold text-sm">{cat}</span>
             </button>
           ))}
+          <button
+            onClick={() => navigate("/search")}
+            className="border border-[var(--app-border)] bg-white text-[var(--app-text-muted)] flex items-center gap-2 rounded-full px-5 py-3 whitespace-nowrap transition-all duration-200"
+          >
+            <span className="font-semibold text-sm">Ver más</span>
+          </button>
         </div>
       </div>
 

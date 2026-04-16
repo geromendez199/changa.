@@ -10,7 +10,7 @@ import { Button } from "../components/Button";
 import { JobCard } from "../components/JobCard";
 import { JobCardSkeleton } from "../components/JobCardSkeleton";
 import { Input } from "../components/Input";
-import { categoryFilters } from "../constants/catalog";
+import { categoryFilters, primaryCategoryFilters } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { EmptyStateCard } from "../components/EmptyStateCard";
@@ -107,11 +107,32 @@ export function SearchResults() {
                 ))}
               </select>
             </label>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-[var(--app-text)]">Todas las categorías</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {categoryFilters
+                  .filter((item) => item !== "Todos")
+                  .map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setCategory(item)}
+                      className={`rounded-[16px] border px-3 py-2 text-left text-sm font-semibold transition-all ${
+                        category === item
+                          ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] text-[var(--app-brand)]"
+                          : "border-[var(--app-border)] bg-white text-[var(--app-text-muted)]"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+              </div>
+            </div>
           </SurfaceCard>
         ) : null}
 
         <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6">
-          {categoryFilters.map((cat) => (
+          {primaryCategoryFilters.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
@@ -124,6 +145,12 @@ export function SearchResults() {
               {cat}
             </button>
           ))}
+          <button
+            onClick={() => setShowFilters(true)}
+            className="rounded-full border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-semibold whitespace-nowrap text-[var(--app-text-muted)] transition-all"
+          >
+            Ver más
+          </button>
         </div>
       </ScreenHeader>
 

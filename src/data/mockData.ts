@@ -27,17 +27,17 @@ export const currentUserId = "sample-user-lucas";
 
 export const jobCategories: JobCategory[] = [
   "Hogar",
-  "Oficios",
-  "Delivery",
-  "Eventos",
-  "Tecnología",
   "Construcción y Mantenimiento",
+  "Oficios",
+  "Control de Plagas",
   "Mecánica y Transporte",
+  "Delivery",
   "Servicios Personales y Estética",
   "Alimentación y Tradición",
+  "Tecnología",
   "Oficios Modernos y Digitales",
-  "Control de Plagas",
   "Personal Trainer",
+  "Eventos",
   "Otros",
 ];
 
