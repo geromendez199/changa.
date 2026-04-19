@@ -9,6 +9,7 @@ import { Input } from "../../components/Input";
 import { useAuth } from "../../../context/AuthContext";
 import { BrandLogo } from "../../components/BrandLogo";
 import { SurfaceCard } from "../../components/SurfaceCard";
+import { sanitizeRedirectPath } from "../../utils/navigation";
 
 export function Login() {
   const { signIn } = useAuth();
@@ -36,8 +37,8 @@ export function Login() {
 
     if (!result.ok) return setError(result.message || "No se pudo iniciar sesión.");
 
-    const redirectTo = new URLSearchParams(location.search).get("redirect") || "/home";
-    navigate(redirectTo);
+    const redirectTo = sanitizeRedirectPath(new URLSearchParams(location.search).get("redirect"));
+    navigate(redirectTo, { replace: true });
   };
 
   return (

@@ -53,6 +53,7 @@ export const router = createBrowserRouter([
   { path: "/", element: <Welcome /> },
   { path: "/login", element: <Login /> },
   { path: "/signup", element: <Signup /> },
+  { path: "/register", element: <Navigate to="/signup" replace /> },
   { path: "/home", element: <Home /> },
   { path: "/search", element: <SearchResults /> },
   { path: "/job/:id", element: <JobDetail /> },
