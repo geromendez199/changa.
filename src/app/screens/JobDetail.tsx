@@ -19,6 +19,7 @@ import { useAppState } from "../hooks/useAppState";
 import { Application, Job } from "../../types/domain";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getListingActionCopy, getListingTypeLabel } from "../utils/listings";
 
 export function JobDetail() {
   const navigate = useNavigate();
@@ -108,14 +109,14 @@ export function JobDetail() {
         </button>
         <SurfaceCard className="mt-8 text-center" padding="lg">
           <h1 className="mb-2 text-xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
-            Trabajo no encontrado
+            Publicación no encontrada
           </h1>
           <p className="mb-6 text-sm text-[var(--app-text-muted)]">
-            Esta changa no existe o fue eliminada.
+            Esta publicación no existe o fue eliminada.
           </p>
           <div className="space-y-2">
             <Button onClick={() => navigate("/search")} fullWidth>
-              Ver otras changas
+              Ver otras publicaciones
             </Button>
             <Button
               variant="secondary"
@@ -129,6 +130,8 @@ export function JobDetail() {
       </div>
     );
   }
+
+  const listingCopy = getListingActionCopy(job.listingType);
 
   const trustSignals = publisher
     ? [
@@ -162,16 +165,19 @@ export function JobDetail() {
     setIsSubmittingApplication(false);
 
     if (!result.ok || !result.application) {
-      toast.error("No pudimos enviar la postulación", {
+      toast.error(
+        `No pudimos enviar ${job.listingType === "service" ? "la solicitud" : "la postulación"}`,
+        {
         description: result.message,
-      });
+        },
+      );
       return;
     }
 
     setCoverMessage("");
     setProposedAmount("");
-    toast.success("Postulación enviada", {
-      description: "Ahora el cliente puede revisar tu propuesta y responderte.",
+    toast.success(job.listingType === "service" ? "Solicitud enviada" : "Postulación enviada", {
+      description: listingCopy.detailApplySuccessDescription,
     });
   };
 
@@ -189,7 +195,7 @@ export function JobDetail() {
 
     if (!result.ok) {
       setActiveApplicationId(null);
-      toast.error("No pudimos actualizar la postulación", {
+      toast.error("No pudimos actualizar la solicitud", {
         description: result.message,
       });
       return;
@@ -218,22 +224,28 @@ export function JobDetail() {
       setActiveApplicationId(null);
 
       if (!conversationResult.ok || !conversationResult.conversation) {
-        toast.error("Aceptamos la postulación, pero falló el chat", {
+        toast.error("La solicitud fue aceptada, pero falló el chat", {
           description:
             conversationResult.message ?? "Intentá abrir la conversación nuevamente.",
         });
         return;
       }
 
-      toast.success("Postulante aceptado", {
-        description: "La conversación ya quedó disponible para coordinar la changa.",
+      toast.success(job.listingType === "service" ? "Solicitud aceptada" : "Postulante aceptado", {
+        description:
+          job.listingType === "service"
+            ? "La conversación ya quedó disponible para coordinar el servicio."
+            : "La conversación ya quedó disponible para coordinar la changa.",
       });
       return;
     }
 
     setActiveApplicationId(null);
-    toast.success("Postulación rechazada", {
-      description: "La changa sigue abierta para otras personas.",
+    toast.success(job.listingType === "service" ? "Solicitud rechazada" : "Postulación rechazada", {
+      description:
+        job.listingType === "service"
+          ? "Tu servicio sigue visible para otras personas."
+          : "La changa sigue abierta para otras personas.",
     });
   };
 
@@ -311,6 +323,7 @@ export function JobDetail() {
         </button>
 
         <div className="absolute bottom-4 left-4 flex flex-wrap gap-2 sm:bottom-6 sm:left-6">
+          <Badge variant="published">{getListingTypeLabel(job.listingType)}</Badge>
           <Badge variant="accent">{job.category}</Badge>
           {job.urgency === "urgente" ? (
             <Badge variant="urgent">{formatUrgencyLabel(job.urgency)}</Badge>
@@ -351,9 +364,15 @@ export function JobDetail() {
         <div className="mb-6 rounded-3xl bg-gradient-to-br from-[#0DAE79] to-[#0B9A6B] p-6 shadow-xl shadow-[#0DAE79]/20">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="mb-1 text-sm text-white/80">Presupuesto</p>
+              <p className="mb-1 text-sm text-white/80">
+                {job.listingType === "service" ? "Precio base" : "Presupuesto"}
+              </p>
               <p className="text-3xl font-bold text-white">{job.priceLabel}</p>
-              <p className="mt-1 text-xs text-white/70">A coordinar por la app</p>
+              <p className="mt-1 text-xs text-white/70">
+                {job.listingType === "service"
+                  ? "Podés pedir presupuesto o coordinar por la app"
+                  : "A coordinar por la app"}
+              </p>
             </div>
             <div className="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
               <Shield size={32} className="text-white" />
@@ -369,7 +388,7 @@ export function JobDetail() {
         {publisher ? (
           <SurfaceCard className="mb-6" padding="md">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-[var(--app-text-muted)]">
-              Publicado por
+              {job.listingType === "service" ? "Servicio publicado por" : "Publicado por"}
             </p>
             <div className="flex items-center gap-4">
               <UserAvatar
@@ -417,11 +436,13 @@ export function JobDetail() {
         {isOwner ? (
           <SurfaceCard className="mb-6" padding="lg">
             <SectionHeader
-              title="Postulantes"
+              title={listingCopy.detailOwnerSection}
               subtitle={
                 jobApplications.length > 0
-                  ? `${jobApplications.length} personas respondieron esta changa`
-                  : "Todavía no hay postulaciones"
+                  ? `${jobApplications.length} personas respondieron esta publicación`
+                  : job.listingType === "service"
+                    ? "Todavía no hay solicitudes"
+                    : "Todavía no hay postulaciones"
               }
             />
 
@@ -504,7 +525,7 @@ export function JobDetail() {
               </div>
             ) : (
               <div className="mt-4 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-5 text-sm text-[var(--app-text-muted)]">
-                Cuando alguien se postule, vas a poder aceptarlo o rechazarlo desde acá.
+                {listingCopy.ownerEmptyApplicants}
               </div>
             )}
           </SurfaceCard>
@@ -512,7 +533,7 @@ export function JobDetail() {
           <SurfaceCard className="mb-6" padding="lg">
             {myApplication ? (
               <>
-                <SectionHeader title="Tu postulación" />
+                <SectionHeader title={job.listingType === "service" ? "Tu solicitud" : "Tu postulación"} />
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <Badge
                     variant={
@@ -540,7 +561,7 @@ export function JobDetail() {
                 {myApplication.status === "aceptada" ? (
                   <div className="mt-4">
                     <Button fullWidth onClick={() => void openMyAcceptedChat()}>
-                      Abrir chat con el cliente
+                      Abrir chat con {job.listingType === "service" ? "quien ofrece el servicio" : "el cliente"}
                     </Button>
                   </div>
                 ) : null}
@@ -548,20 +569,28 @@ export function JobDetail() {
             ) : (
               <>
                 <SectionHeader
-                  title="Postularme"
-                  subtitle="Mandá una propuesta clara para que el cliente pueda decidir rápido."
+                  title={listingCopy.detailApplyTitle}
+                  subtitle={
+                    job.listingType === "service"
+                      ? "Contá qué necesitás, para cuándo lo querés y el presupuesto que tenés en mente."
+                      : "Mandá una propuesta clara para que el cliente pueda decidir rápido."
+                  }
                 />
                 <div className="mt-4 space-y-3">
                   <Textarea
                     value={coverMessage}
                     onChange={(event) => setCoverMessage(event.target.value)}
-                    placeholder="Contá tu experiencia, cuándo podrías hacerlo y cualquier detalle útil."
+                    placeholder={
+                      job.listingType === "service"
+                        ? "Contá qué necesitás, cuándo lo querés resolver y cualquier detalle útil para cotizar."
+                        : "Contá tu experiencia, cuándo podrías hacerlo y cualquier detalle útil."
+                    }
                   />
                   <Input
                     type="number"
                     value={proposedAmount}
                     onChange={setProposedAmount}
-                    placeholder="Monto propuesto en ARS"
+                    placeholder={job.listingType === "service" ? "Tu presupuesto estimado en ARS" : "Monto propuesto en ARS"}
                     size="lg"
                   />
                   <Button
@@ -573,7 +602,11 @@ export function JobDetail() {
                     }
                     onClick={() => void handleApply()}
                   >
-                    {isSubmittingApplication ? "Enviando..." : "Enviar postulación"}
+                    {isSubmittingApplication
+                      ? "Enviando..."
+                      : job.listingType === "service"
+                        ? "Enviar solicitud"
+                        : "Enviar postulación"}
                   </Button>
                 </div>
               </>

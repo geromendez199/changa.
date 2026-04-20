@@ -13,6 +13,7 @@ export function PublishConfirmation() {
   const { id } = useParams();
   const { jobs } = useAppState();
   const job = jobs.find((item) => item.id === id);
+  const itemLabel = job?.listingType === "service" ? "servicio" : "publicación";
 
   return (
     <div className="app-screen px-6 pt-20">
@@ -25,11 +26,13 @@ export function PublishConfirmation() {
         </h1>
         <p className="mb-6 text-sm leading-relaxed text-[var(--app-text-muted)]">
           {job
-            ? `Tu changa "${job.title}" ya está visible para personas de tu zona.`
-            : "Tu changa fue publicada correctamente."}
+            ? `Tu ${itemLabel} "${job.title}" ya está visible para personas de tu zona.`
+            : "Tu publicación fue creada correctamente."}
         </p>
         <div className="mb-6 rounded-[22px] border border-[var(--app-border)] bg-[var(--app-surface-soft)] p-4 text-sm leading-relaxed text-[var(--app-text-muted)]">
-          Ahora quienes estén disponibles pueden verla, entender el contexto y responderte desde Changa.
+          {job?.listingType === "service"
+            ? "Ahora otras personas pueden descubrir tu propuesta, pedirte presupuesto y empezar la conversación desde changa."
+            : "Ahora quienes estén disponibles pueden verla, entender el contexto y responderte desde changa."}
         </div>
         <div className="space-y-3">
           {job && (
@@ -38,7 +41,7 @@ export function PublishConfirmation() {
             </Button>
           )}
           <Button fullWidth variant="secondary" onClick={() => navigate("/my-jobs")}>
-            Ir a mis trabajos
+            Ir a mis publicaciones
           </Button>
         </div>
       </SurfaceCard>

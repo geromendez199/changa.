@@ -24,6 +24,7 @@ import { shouldUseFallback, successResult } from "../services/service.utils";
 import { Application, Job } from "../types/domain";
 
 export interface NewJobInput {
+  listingType: Job["listingType"];
   title: string;
   description: string;
   category: Job["category"];
@@ -96,7 +97,10 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
 
       const createdResult = await createJob({ ...input, postedByUserId: userId });
       if (!createdResult.data) {
-        pushError(createdResult.error ?? "No pudimos publicar tu changa.");
+        pushError(
+          createdResult.error ??
+            `No pudimos publicar tu ${input.listingType === "service" ? "servicio" : "changa"}.`,
+        );
         return null;
       }
 
@@ -134,7 +138,7 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
           ...existingJob,
           ...input,
           priceValue: Math.round(input.priceValue),
-          priceLabel: `$${Math.round(input.priceValue).toLocaleString("es-AR")}`,
+          priceLabel: `${input.listingType === "service" ? "Desde " : ""}$${Math.round(input.priceValue).toLocaleString("es-AR")}`,
           image: input.image?.trim() || existingJob.image,
         };
 
@@ -152,7 +156,11 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
 
       setJobs((prev) => prev.map((job) => (job.id === jobId ? result.data! : job)));
       setMyJobs((prev) => prev.map((job) => (job.id === jobId ? result.data! : job)));
-      return { ok: true, message: "Changa actualizada.", job: result.data };
+      return {
+        ok: true,
+        message: `${input.listingType === "service" ? "Servicio" : "Publicación"} actualizada.`,
+        job: result.data,
+      };
     },
     [myJobs, pushError, userId],
   );
@@ -170,7 +178,7 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
         : await deleteJob(jobId, userId);
 
       if (!result.data) {
-        const message = result.error ?? "No pudimos eliminar la changa.";
+        const message = result.error ?? "No pudimos eliminar la publicación.";
         pushError(message);
         return { ok: false, message };
       }
@@ -182,8 +190,8 @@ export function useJobsState({ userId, pushError }: UseJobsStateOptions) {
         ok: true,
         message:
           result.source === "fallback"
-            ? "La changa se ocultó en esta vista previa."
-            : "La changa se eliminó correctamente.",
+            ? "La publicación se ocultó en esta vista previa."
+            : "La publicación se eliminó correctamente.",
       };
     },
     [pushError, userId],

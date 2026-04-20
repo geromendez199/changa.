@@ -5,9 +5,12 @@
 import { MapPin, Star } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Badge } from "./Badge";
+import { ListingType } from "../../types/domain";
+import { getListingTypeLabel } from "../utils/listings";
 
 interface JobCardProps {
   id: string;
+  listingType: ListingType;
   image: string;
   title: string;
   category: string;
@@ -22,6 +25,7 @@ interface JobCardProps {
 
 export function JobCard({
   id,
+  listingType,
   image,
   title,
   category,
@@ -34,6 +38,7 @@ export function JobCard({
   testId,
 }: JobCardProps) {
   const navigate = useNavigate();
+  const listingLabel = getListingTypeLabel(listingType);
 
   if (featured) {
     return (
@@ -45,7 +50,10 @@ export function JobCard({
       >
         <div className="relative">
           <img src={image} alt={title} className="h-40 w-full object-cover" />
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 flex gap-2">
+            <Badge variant="published" size="sm">
+              {listingLabel}
+            </Badge>
             <Badge variant="accent" size="sm">
               {category}
             </Badge>
@@ -116,6 +124,9 @@ export function JobCard({
           )}
           <div className="mt-auto">
             <div className="flex items-center gap-2 mb-2">
+              <Badge variant="published" size="sm">
+                {listingLabel}
+              </Badge>
               <Badge variant="accent" size="sm">
                 {category}
               </Badge>

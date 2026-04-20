@@ -16,6 +16,7 @@ import { SurfaceCard } from "../components/SurfaceCard";
 import { primaryCategoryFilters } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
+import { getListingTypePluralLabel } from "../utils/listings";
 
 export function Home() {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ export function Home() {
 
   const featuredJobs = jobs.slice(0, 3);
   const nearbyJobs = [...jobs].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 3);
+  const serviceHighlights = jobs.filter((job) => job.listingType === "service").slice(0, 3);
+  const requestHighlights = jobs.filter((job) => job.listingType === "request").slice(0, 3);
   const shouldShowLoadingCards = isLoading && jobs.length === 0;
 
   return (
@@ -59,7 +62,7 @@ export function Home() {
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
             <Input
-              placeholder="Buscar changas, oficios o categorías"
+              placeholder="Buscar changas, servicios u oficios"
               icon={<Search size={20} />}
               size="lg"
               onChange={(value) => navigate(`/search?q=${encodeURIComponent(value)}`)}
@@ -130,7 +133,7 @@ export function Home() {
           <div className="app-content-shell mb-5 px-4 sm:px-6 lg:px-10">
             <SectionHeader
               title="Destacadas"
-              actionLabel="Ver todas"
+              actionLabel="Ver marketplace"
               onAction={() => navigate("/search")}
             />
           </div>
@@ -144,6 +147,7 @@ export function Home() {
                   <JobCard
                     key={job.id}
                     id={job.id}
+                    listingType={job.listingType}
                     image={job.image}
                     title={job.title}
                     category={job.category}
@@ -168,8 +172,8 @@ export function Home() {
               isLoading
                 ? "Cargando changas..."
                 : jobs.length > 0
-                  ? `${jobs.length} changas`
-                  : "No hay changas por ahora"
+                  ? `${jobs.length} publicaciones activas`
+                  : "No hay publicaciones por ahora"
             }
           />
         </div>
@@ -186,6 +190,7 @@ export function Home() {
               <JobCard
                 key={job.id}
                 id={job.id}
+                listingType={job.listingType}
                 image={job.image}
                 title={job.title}
                 description={job.description}
@@ -202,13 +207,69 @@ export function Home() {
           !isLoading && (
             <EmptyStateCard
               icon={<Compass size={28} />}
-              title="Todavía no hay changas"
+              title="Todavía no hay publicaciones"
               description="Volvé a intentar en un rato o activá tu ubicación."
               actionLabel="Activar ubicación"
               onAction={requestDeviceLocation}
             />
           )
         )}
+
+        {!shouldShowLoadingCards && requestHighlights.length > 0 ? (
+          <div className="mt-10">
+            <SectionHeader
+              title="Pedidos activos"
+              subtitle={`${requestHighlights.length} ${getListingTypePluralLabel("request")} para resolver`}
+              actionLabel="Ver pedidos"
+              onAction={() => navigate("/search?listingType=request")}
+            />
+            <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+              {requestHighlights.map((job) => (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  listingType={job.listingType}
+                  image={job.image}
+                  title={job.title}
+                  description={job.description}
+                  category={job.category}
+                  price={job.priceLabel}
+                  rating={job.rating}
+                  distance={formatDistance(job.distanceKm)}
+                  urgency={formatUrgencyLabel(job.urgency)}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {!shouldShowLoadingCards && serviceHighlights.length > 0 ? (
+          <div className="mt-10">
+            <SectionHeader
+              title="Servicios para contratar"
+              subtitle={`${serviceHighlights.length} servicios publicados cerca tuyo`}
+              actionLabel="Ver servicios"
+              onAction={() => navigate("/search?listingType=service")}
+            />
+            <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+              {serviceHighlights.map((job) => (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  listingType={job.listingType}
+                  image={job.image}
+                  title={job.title}
+                  description={job.description}
+                  category={job.category}
+                  price={job.priceLabel}
+                  rating={job.rating}
+                  distance={formatDistance(job.distanceKm)}
+                  urgency={formatUrgencyLabel(job.urgency)}
+                />
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <BottomNav />

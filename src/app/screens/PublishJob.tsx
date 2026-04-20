@@ -15,6 +15,7 @@ import { Textarea } from "../components/Textarea";
 import { jobCategories } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
 import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getListingTypeLabel } from "../utils/listings";
 
 const totalSteps = 4;
 
@@ -32,6 +33,7 @@ export function PublishJob() {
   const [publishing, setPublishing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [form, setForm] = useState({
+    listingType: "request" as "request" | "service",
     category: "" as (typeof jobCategories)[number] | "",
     title: "",
     description: "",
@@ -46,6 +48,7 @@ export function PublishJob() {
     if (!jobToEdit) return;
 
     setForm({
+      listingType: jobToEdit.listingType,
       category: jobToEdit.category,
       title: jobToEdit.title,
       description: jobToEdit.description,
@@ -100,6 +103,7 @@ export function PublishJob() {
       setPublishing(true);
       setSubmitError(null);
       const payload = {
+        listingType: form.listingType,
         category: form.category || "Otros",
         title: form.title,
         description: form.description,
@@ -115,7 +119,9 @@ export function PublishJob() {
         setPublishing(false);
 
         if (!result.ok || !result.job) {
-          const message = result.message || "No pudimos guardar los cambios de tu changa.";
+          const message =
+            result.message ||
+            `No pudimos guardar los cambios de tu ${form.listingType === "service" ? "servicio" : "changa"}.`;
           setSubmitError(message);
           toast.error("No pudimos guardar los cambios", {
             description: message,
@@ -124,7 +130,7 @@ export function PublishJob() {
         }
 
         toast.success("Cambios guardados", {
-          description: "Tu publicación ya quedó actualizada.",
+          description: `Tu ${form.listingType === "service" ? "servicio" : "publicación"} ya quedó actualizada.`,
         });
         navigate("/my-jobs");
         return;
@@ -133,15 +139,19 @@ export function PublishJob() {
       const created = await addPublishedJob(payload);
       setPublishing(false);
       if (!created) {
-        const message = "No pudimos publicar tu changa. Revisá tu sesión e intentá de nuevo.";
+        const itemLabel = form.listingType === "service" ? "servicio" : "changa";
+        const message = `No pudimos publicar tu ${itemLabel}. Revisá tu sesión e intentá de nuevo.`;
         setSubmitError(message);
-        toast.error("No pudimos publicar tu changa", {
+        toast.error(`No pudimos publicar tu ${itemLabel}`, {
           description: "Revisá los datos y probá nuevamente.",
         });
         return;
       }
-      toast.success("Tu changa ya está publicada", {
-        description: "Ahora las personas de tu zona la pueden ver y responder.",
+      toast.success(form.listingType === "service" ? "Tu servicio ya está publicado" : "Tu changa ya está publicada", {
+        description:
+          form.listingType === "service"
+            ? "Ahora las personas de tu zona pueden descubrirlo y pedirte presupuesto."
+            : "Ahora las personas de tu zona la pueden ver y responder.",
       });
       navigate(`/publish/confirm/${created.id}`);
     }
@@ -150,11 +160,17 @@ export function PublishJob() {
   return (
     <div className="app-screen pb-32">
       <ScreenHeader
-        title={isEditing ? "Editar changa" : "Publicá una changa"}
+        title={
+          isEditing
+            ? jobToEdit?.listingType === "service"
+              ? "Editar servicio"
+              : "Editar changa"
+            : "Publicar en changa."
+        }
         subtitle={
           isEditing
-            ? "Ajustá los datos para que siga clara y fácil de responder."
-            : "Contá qué necesitás resolver y dejalo visible en minutos."
+            ? "Ajustá los datos para que la publicación siga clara y atractiva."
+            : "Publicá un pedido o mostrale a tu zona el servicio que ofrecés."
         }
         onBack={() => (step === 1 ? navigate(-1) : setStep((prev) => prev - 1))}
       >
@@ -184,10 +200,33 @@ export function PublishJob() {
         {step === 1 && (
           <SurfaceCard padding="lg">
             <h2 className="mb-2 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
-              ¿Qué tipo de ayuda necesitás?
+              ¿Qué querés publicar?
             </h2>
             <p className="mb-4 text-[var(--app-text-muted)]">
-              Elegí la categoría que mejor describa la tarea que querés resolver.
+              Elegí si vas a pedir ayuda o si querés mostrar un servicio para que te contraten.
+            </p>
+            <div className="mb-5 grid gap-3 sm:grid-cols-2">
+              {([
+                ["request", "Necesito ayuda", "Publicá una necesidad concreta para recibir propuestas."],
+                ["service", "Ofrezco un servicio", "Mostrá lo que hacés para que puedan contratarte."],
+              ] as const).map(([value, title, description]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, listingType: value }))}
+                  className={`rounded-[24px] border p-5 text-left transition-all ${
+                    form.listingType === value
+                      ? "border-[var(--app-brand)] bg-[var(--app-brand-soft)] shadow-[0_12px_28px_rgba(13,174,121,0.12)]"
+                      : "border-[var(--app-border)] bg-[var(--app-surface-muted)]"
+                  }`}
+                >
+                  <p className="font-bold text-[var(--app-text)]">{title}</p>
+                  <p className="mt-2 text-sm text-[var(--app-text-muted)]">{description}</p>
+                </button>
+              ))}
+            </div>
+            <p className="mb-4 text-sm font-semibold text-[var(--app-brand)]">
+              Tipo seleccionado: {getListingTypeLabel(form.listingType)}
             </p>
             <div className="grid grid-cols-2 gap-3">
               {jobCategories.map((category) => (
@@ -214,13 +253,19 @@ export function PublishJob() {
         {step === 2 && (
           <SurfaceCard padding="lg" className="space-y-4">
             <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
-              Contanos qué necesitás
+              {form.listingType === "service" ? "Contanos qué ofrecés" : "Contanos qué necesitás"}
             </h2>
             <p className="text-[var(--app-text-muted)]">
-              Un buen título y una descripción clara te ayudan a recibir respuestas más útiles.
+              {form.listingType === "service"
+                ? "Un buen título y una propuesta clara te ayudan a que entiendan rápido qué hacés."
+                : "Un buen título y una descripción clara te ayudan a recibir respuestas más útiles."}
             </p>
             <Input
-              placeholder="Ej: Arreglar una pérdida en la cocina"
+              placeholder={
+                form.listingType === "service"
+                  ? "Ej: Desde Arriba | Filmaciones aereas para eventos e inmuebles"
+                  : "Ej: Arreglar una perdida en la cocina"
+              }
               value={form.title}
               onChange={(value) => setForm((prev) => ({ ...prev, title: value }))}
               size="lg"
@@ -229,7 +274,11 @@ export function PublishJob() {
             <Textarea
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="Explicá qué necesitás, si hay urgencia, materiales o algún detalle importante."
+              placeholder={
+                form.listingType === "service"
+                  ? "Contá qué servicio brindás, en qué tipos de proyectos trabajás y qué te diferencia."
+                  : "Explicá qué necesitás, si hay urgencia, materiales o algún detalle importante."
+              }
               data-testid="publish-description-input"
             />
           </SurfaceCard>
@@ -238,10 +287,12 @@ export function PublishJob() {
         {step === 3 && (
           <SurfaceCard padding="lg" className="space-y-4">
             <h2 className="text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
-              Ubicación, presupuesto y tiempos
+              {form.listingType === "service" ? "Zona, precio base y disponibilidad" : "Ubicación, presupuesto y tiempos"}
             </h2>
             <p className="text-[var(--app-text-muted)]">
-              Mientras más claro seas con la zona, el presupuesto y el momento ideal, mejores respuestas vas a recibir.
+              {form.listingType === "service"
+                ? "Mientras más claro seas con la zona, el valor desde y tus horarios, más fácil va a ser que te contraten."
+                : "Mientras más claro seas con la zona, el presupuesto y el momento ideal, mejores respuestas vas a recibir."}
             </p>
             <Input
               placeholder="Ubicación (ej: Rafaela, Santa Fe)"
@@ -251,7 +302,7 @@ export function PublishJob() {
               data-testid="publish-location-input"
             />
             <Input
-              placeholder="Presupuesto estimado en ARS"
+              placeholder={form.listingType === "service" ? "Precio desde en ARS" : "Presupuesto estimado en ARS"}
               type="number"
               value={form.price}
               onChange={(value) => setForm((prev) => ({ ...prev, price: value }))}
@@ -259,7 +310,11 @@ export function PublishJob() {
               data-testid="publish-price-input"
             />
             <Input
-              placeholder="¿Cuándo lo necesitás? (ej: mañana por la tarde)"
+              placeholder={
+                form.listingType === "service"
+                  ? "¿Cuándo estás disponible? (ej: lunes a viernes por la tarde)"
+                  : "¿Cuándo lo necesitás? (ej: mañana por la tarde)"
+              }
               value={form.availability}
               onChange={(value) => setForm((prev) => ({ ...prev, availability: value }))}
               size="lg"
@@ -310,16 +365,21 @@ export function PublishJob() {
               data-testid="publish-image-input"
             />
             <SurfaceCard tone="muted" padding="md">
-              <h3 className="mb-3 font-bold text-[var(--app-text)]">Así se va a ver tu changa</h3>
+              <h3 className="mb-3 font-bold text-[var(--app-text)]">
+                Así se va a ver tu {form.listingType === "service" ? "servicio" : "changa"}
+              </h3>
               <ul className="space-y-2 text-sm text-[var(--app-text-muted)]">
+                <li><strong>Tipo:</strong> {form.listingType === "service" ? "Servicio ofrecido" : "Pedido de ayuda"}</li>
                 <li><strong>Categoría:</strong> {form.category}</li>
                 <li><strong>Título:</strong> {form.title}</li>
                 <li><strong>Ubicación:</strong> {form.location}</li>
-                <li><strong>Presupuesto:</strong> ${Number(form.price || 0).toLocaleString("es-AR")}</li>
-                <li><strong>Cuándo lo necesitás:</strong> {form.availability}</li>
+                <li><strong>{form.listingType === "service" ? "Precio base" : "Presupuesto"}:</strong> ${Number(form.price || 0).toLocaleString("es-AR")}</li>
+                <li><strong>{form.listingType === "service" ? "Disponibilidad" : "Cuándo lo necesitás"}:</strong> {form.availability}</li>
               </ul>
               <div className="mt-4 rounded-[18px] border border-[var(--app-border)] bg-white p-3 text-sm text-[var(--app-text-muted)]">
-                Las personas van a ver tu descripción, la zona general y el presupuesto para responderte con más claridad.
+                {form.listingType === "service"
+                  ? "Las personas van a ver tu propuesta, la zona y el valor base para decidir si quieren pedirte presupuesto o contactarte."
+                  : "Las personas van a ver tu descripción, la zona general y el presupuesto para responderte con más claridad."}
               </div>
             </SurfaceCard>
           </SurfaceCard>
@@ -362,7 +422,9 @@ export function PublishJob() {
                     : "Publicando..."
                   : isEditing
                     ? "Guardar cambios"
-                    : "Publicar changa"
+                    : form.listingType === "service"
+                      ? "Publicar servicio"
+                      : "Publicar changa"
               : "Continuar"}
           </Button>
         </div>

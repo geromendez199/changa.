@@ -22,6 +22,7 @@ create type job_category as enum (
 );
 create type job_urgency as enum ('normal','urgente');
 create type job_status as enum ('publicado','postulado','en_progreso','programado','pendiente','completado','cancelado');
+create type listing_type as enum ('request','service');
 create type application_status as enum ('enviada','aceptada','rechazada');
 create type payment_type as enum ('Visa','Mastercard','Mercado Pago');
 create type transaction_status as enum ('pagado','pendiente','reintegrado');
@@ -50,6 +51,7 @@ add column if not exists avatar_url text;
 create table if not exists jobs (
   id uuid primary key default gen_random_uuid(),
   posted_by_user_id uuid not null references profiles(id) on delete cascade,
+  listing_type listing_type not null default 'request',
   title text not null,
   description text not null,
   category job_category not null,
@@ -74,6 +76,9 @@ generated always as (
   setweight(to_tsvector('simple', coalesce(description, '')), 'B') ||
   setweight(to_tsvector('simple', coalesce(location, '')), 'C')
 ) stored;
+
+alter table jobs
+add column if not exists listing_type listing_type not null default 'request';
 
 create table if not exists applications (
   id uuid primary key default gen_random_uuid(),

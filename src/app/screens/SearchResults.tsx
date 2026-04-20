@@ -19,6 +19,7 @@ import { ScreenHeader } from "../components/ScreenHeader";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { getFallbackPreviewMessage } from "../../services/service.utils";
+import type { Job } from "../../types/domain";
 
 const sortingOptions = [
   { label: "Distancia", value: "distance" },
@@ -32,6 +33,9 @@ export function SearchResults() {
 
   const [query, setQuery] = useState(params.get("q") || "");
   const [category, setCategory] = useState(params.get("category") || "Todos");
+  const [listingType, setListingType] = useState<Job["listingType"] | "all">(
+    (params.get("listingType") as Job["listingType"] | null) ?? "all",
+  );
   const [sortBy, setSortBy] = useState<"distance" | "newest">("distance");
   const [showFilters, setShowFilters] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
@@ -39,34 +43,63 @@ export function SearchResults() {
   const isPreview = dataSource === "fallback";
 
   useEffect(() => {
-    void refreshJobs({ query, category, onlyUrgent, sortBy });
-  }, [category, onlyUrgent, query, refreshJobs, sortBy]);
+    void refreshJobs({ query, category, listingType: listingType === "all" ? undefined : listingType, onlyUrgent, sortBy });
+  }, [category, listingType, onlyUrgent, query, refreshJobs, sortBy]);
 
   return (
     <div className="app-screen pb-28">
       <ScreenHeader
-        title="Explorar changas"
+        title="Explorar marketplace"
         subtitle={
           selectedLocation
             ? `Resultados priorizados para ${selectedLocation}.`
-            : "Buscá por categoría, urgencia o cercanía."
+            : "Buscá pedidos, servicios, urgencia o cercanía."
         }
         onBack={() => navigate("/home")}
         sticky
       >
         <Input
-          placeholder="Buscar changas, oficios o categorías"
+          placeholder="Buscar changas, servicios u oficios"
           value={query}
           size="lg"
           onChange={(value) => {
             setQuery(value);
             setParams((prev) => {
               const next = new URLSearchParams(prev);
-              next.set("q", value);
+              if (value.trim()) next.set("q", value);
+              else next.delete("q");
               return next;
             });
           }}
         />
+
+        <div className="mt-4 flex gap-2 overflow-x-auto scrollbar-hide">
+          {([
+            ["all", "Todo"],
+            ["request", "Pedidos"],
+            ["service", "Servicios"],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => {
+                setListingType(value);
+                setParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  if (value === "all") next.delete("listingType");
+                  else next.set("listingType", value);
+                  return next;
+                });
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition-all ${
+                listingType === value
+                  ? "bg-[var(--app-brand)] text-white shadow-[0_14px_28px_rgba(13,174,121,0.18)]"
+                  : "border border-[var(--app-border)] bg-white text-[var(--app-text-muted)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <div className="mt-4 flex items-center gap-3">
           <div className="flex flex-1 items-center gap-2 text-sm text-[var(--app-text-muted)]">
@@ -182,6 +215,7 @@ export function SearchResults() {
               <JobCard
                 key={job.id}
                 id={job.id}
+                listingType={job.listingType}
                 image={job.image}
                 title={job.title}
                 description={job.description}
@@ -199,23 +233,24 @@ export function SearchResults() {
           <EmptyStateCard
             icon={<SearchX size={28} />}
             eyebrow="Sin coincidencias por ahora"
-            title="No encontramos changas con esos filtros"
+            title="No encontramos publicaciones con esos filtros"
             description={
               isPreview
                 ? "Probá con otra categoría o limpiá la búsqueda para seguir recorriendo la vista previa local."
-                : "Probá con otra categoría, ampliá la búsqueda o publicá una tarea para activar movimiento en tu zona."
+                : "Probá con otra categoría, cambiá entre pedidos y servicios o publicá lo que necesitás/ofrecés."
             }
             note={
               isPreview
                 ? "Esta vista previa usa datos de muestra pensados para recorrer filtros, cards y detalle."
                 : "Los resultados cambian rápido cuando entran nuevas publicaciones y respuestas cercanas."
             }
-            actionLabel={isPreview ? "Volver al inicio" : "Publicar una changa"}
+            actionLabel={isPreview ? "Volver al inicio" : "Publicar"}
             onAction={() => navigate(isPreview ? "/home" : "/publish")}
             secondaryActionLabel="Limpiar búsqueda"
             onSecondaryAction={() => {
               setQuery("");
               setCategory("Todos");
+              setListingType("all");
               setOnlyUrgent(false);
               setParams(new URLSearchParams());
             }}

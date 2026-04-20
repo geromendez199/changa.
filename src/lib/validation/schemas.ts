@@ -22,6 +22,7 @@ const jobCategories = [
 ] as const;
 const jobUrgencies = ["normal", "urgente"] as const;
 const jobSortValues = ["distance", "newest"] as const;
+const listingTypes = ["request", "service"] as const;
 
 const trimmedRequiredString = (message: string) =>
   z.string().trim().min(1, message);
@@ -44,6 +45,7 @@ export const profileUpdateSchema = z.object({
 
 export const jobCreateSchema = z.object({
   postedByUserId: trimmedRequiredString("Necesitás iniciar sesión para publicar."),
+  listingType: z.enum(listingTypes),
   title: z.string().trim().min(8, "El título debe tener al menos 8 caracteres."),
   description: z.string().trim().min(20, "La descripción debe tener al menos 20 caracteres."),
   category: z.enum(jobCategories),
@@ -88,6 +90,7 @@ export const applicationStatusSchema = z.object({
 export const jobSearchParamsSchema = z.object({
   query: z.string().trim().max(120, "La búsqueda es demasiado larga.").optional(),
   category: z.union([z.enum(jobCategories), z.literal("Todos")]).optional(),
+  listingType: z.enum(listingTypes).optional(),
   onlyUrgent: z.boolean().optional(),
   sortBy: z.enum(jobSortValues).optional(),
   page: z.number().int().positive().optional(),

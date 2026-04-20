@@ -21,6 +21,7 @@ export interface ProfilesRow {
 export interface JobsRow {
   id: string;
   posted_by_user_id: string;
+  listing_type: Job["listingType"];
   title: string;
   description: string;
   category: Job["category"];
@@ -136,15 +137,17 @@ export const mapProfileRow = (row: Partial<ProfilesRow>): Profile => {
 export const mapJobRow = (row: Partial<JobsRow>): Job => {
   const priceValue = Math.max(0, Math.round(toSafeNumber(row.price_value, 0)));
   const distanceKm = Math.max(0, toSafeNumber(row.distance_km, 0));
+  const listingType = row.listing_type === "service" ? "service" : "request";
 
   return {
     id: isNonEmptyString(row.id) ? row.id : "",
     postedByUserId: isNonEmptyString(row.posted_by_user_id) ? row.posted_by_user_id : "",
+    listingType,
     title: isNonEmptyString(row.title) ? row.title : "Trabajo sin título",
     description: isNonEmptyString(row.description) ? row.description : "Sin descripción disponible.",
     category: row.category ?? "Otros",
     priceValue,
-    priceLabel: `$${priceValue.toLocaleString("es-AR")}`,
+    priceLabel: `${listingType === "service" ? "Desde " : ""}$${priceValue.toLocaleString("es-AR")}`,
     rating: Number(toSafeNumber(row.rating, 0).toFixed(1)),
     distanceKm,
     location: isNonEmptyString(row.location) ? row.location : "Ubicación sin definir",

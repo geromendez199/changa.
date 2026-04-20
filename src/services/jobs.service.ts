@@ -21,12 +21,14 @@ import {
 export interface SearchJobsParams {
   query?: string;
   category?: string;
+  listingType?: Job["listingType"];
   onlyUrgent?: boolean;
   sortBy?: "distance" | "newest";
 }
 
 export interface CreateJobInput {
   postedByUserId: string;
+  listingType: Job["listingType"];
   title: string;
   description: string;
   category: Job["category"];
@@ -65,6 +67,9 @@ export async function searchJobs(params: SearchJobsParams): Promise<ServiceResul
 
     if (validatedParams.category && validatedParams.category !== "Todos") {
       query = query.eq("category", validatedParams.category);
+    }
+    if (validatedParams.listingType) {
+      query = query.eq("listing_type", validatedParams.listingType);
     }
     if (validatedParams.onlyUrgent) {
       query = query.eq("urgency", "urgente");
@@ -129,6 +134,7 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
       .from("jobs")
       .insert({
         posted_by_user_id: validatedInput.postedByUserId,
+        listing_type: validatedInput.listingType,
         title: validatedInput.title,
         description: validatedInput.description,
         category: validatedInput.category,
@@ -147,7 +153,7 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
     const createdJob = mapJobRow(data);
     return successResult(createdJob.id ? createdJob : null);
   } catch (error) {
-    return failureResult(null, normalizeError(error, "No pudimos publicar tu changa."));
+    return failureResult(null, normalizeError(error, "No pudimos publicar tu aviso."));
   }
 }
 
@@ -166,6 +172,7 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
       .update({
         title: validatedInput.title,
         description: validatedInput.description,
+        listing_type: validatedInput.listingType,
         category: validatedInput.category,
         location: validatedInput.location,
         price_value: Math.round(validatedInput.priceValue),
@@ -183,7 +190,7 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
     const updatedJob = mapJobRow(data);
     return successResult(updatedJob.id ? updatedJob : null);
   } catch (error) {
-    return failureResult(null, normalizeError(error, "No pudimos guardar los cambios de tu changa."));
+    return failureResult(null, normalizeError(error, "No pudimos guardar los cambios de tu aviso."));
   }
 }
 
@@ -227,6 +234,6 @@ export async function getMyJobs(userId: string): Promise<ServiceResult<Job[]>> {
     if (error) throw error;
     return successResult(mapJobs(data));
   } catch (error) {
-    return failureResult([], normalizeError(error, "No pudimos cargar tus changas."));
+    return failureResult([], normalizeError(error, "No pudimos cargar tus publicaciones."));
   }
 }

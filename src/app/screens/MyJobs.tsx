@@ -37,8 +37,8 @@ export function MyJobs() {
   return (
     <div className="app-screen pb-28">
       <ScreenHeader
-        title="Mis trabajos"
-        subtitle="Gestioná tus publicaciones, postulaciones y trabajos completados."
+        title="Mis publicaciones"
+        subtitle="Gestioná tus pedidos, servicios, postulaciones y trabajos completados."
       >
         <div className="flex gap-2 rounded-[22px] bg-[var(--app-surface-muted)] p-1">
           {([
@@ -80,7 +80,7 @@ export function MyJobs() {
                   {job.title}
                 </h3>
                 <Badge variant="published" icon={<AlertCircle size={12} />}>
-                  Publicado
+                  {job.listingType === "service" ? "Servicio" : "Pedido"}
                 </Badge>
                 <div className="mt-3 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
                   <MapPin size={12} />
@@ -105,20 +105,28 @@ export function MyJobs() {
               </button>
               <button
                 onClick={async () => {
-                  const confirmed = window.confirm("¿Querés eliminar esta changa?");
+                  const confirmed = window.confirm(
+                    `¿Querés eliminar este ${job.listingType === "service" ? "servicio" : "pedido"}?`,
+                  );
                   if (!confirmed) return;
 
                   const result = await removePublishedJob(job.id);
                   if (!result.ok) {
-                    toast.error("No pudimos eliminar la changa", {
+                    toast.error(
+                      `No pudimos eliminar el ${job.listingType === "service" ? "servicio" : "pedido"}`,
+                      {
                       description: result.message,
-                    });
+                      },
+                    );
                     return;
                   }
 
-                  toast.success("Changa eliminada", {
+                  toast.success(
+                    `${job.listingType === "service" ? "Servicio" : "Pedido"} eliminado`,
+                    {
                     description: result.message,
-                  });
+                    },
+                  );
                 }}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-red-200 px-3 py-3 text-sm font-semibold text-red-600"
               >
@@ -240,9 +248,9 @@ export function MyJobs() {
         {tabData[activeTab].length === 0 && (
           <EmptyStateCard
             icon={activeTab === "publicados" ? <BriefcaseBusiness size={28} /> : activeTab === "postulados" ? <Send size={28} /> : <CheckCircle size={28} />}
-            title={activeTab === "publicados" ? "Todavía no publicaste changas" : activeTab === "postulados" ? "No tenés postulaciones activas" : "Tus trabajos completados van a aparecer acá"}
-            description={activeTab === "publicados" ? "Publicá tu primera changa para empezar a recibir respuestas de personas de tu zona." : activeTab === "postulados" ? "Explorá oportunidades y hacé tu primera postulación con un mensaje claro y confiable." : "Cuando cierres trabajos y acumules reseñas, esta sección va a mostrar tu historial."}
-            actionLabel={activeTab === "publicados" ? "Publicar una changa" : "Explorar changas"}
+            title={activeTab === "publicados" ? "Todavía no publicaste nada" : activeTab === "postulados" ? "No tenés solicitudes activas" : "Tus trabajos completados van a aparecer acá"}
+            description={activeTab === "publicados" ? "Publicá tu primer pedido o servicio para empezar a mover tu perfil en la zona." : activeTab === "postulados" ? "Explorá pedidos o servicios y empezá a conectar con personas cerca tuyo." : "Cuando cierres trabajos y acumules reseñas, esta sección va a mostrar tu historial."}
+            actionLabel={activeTab === "publicados" ? "Publicar" : "Explorar"}
             onAction={() => navigate(activeTab === "publicados" ? "/publish" : "/search")}
           />
         )}

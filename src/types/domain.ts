@@ -21,6 +21,7 @@ export type JobCategory =
   | "Otros";
 
 export type JobUrgency = "normal" | "urgente";
+export type ListingType = "request" | "service";
 
 export type JobStatus =
   | "publicado"
@@ -51,6 +52,7 @@ export interface Profile {
 
 export interface Job {
   id: UUID;
+  listingType: ListingType;
   title: string;
   description: string;
   category: JobCategory;

@@ -18,6 +18,7 @@ import {
 type SampleSearchParams = {
   query?: string;
   category?: string;
+  listingType?: Job["listingType"];
   onlyUrgent?: boolean;
   sortBy?: "distance" | "newest";
 };
@@ -137,6 +138,7 @@ export const users: User[] = [
 export const jobs: Job[] = [
   {
     id: "sample-job-1",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Instalar un termotanque eléctrico",
@@ -156,6 +158,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-2",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1581578731548-c64695cc6952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Limpieza después de una mudanza",
@@ -175,6 +178,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-3",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1517048676732-d65bc937f952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Traslado de heladera y lavarropas",
@@ -194,6 +198,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-4",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Fotos simples para menú y redes",
@@ -213,6 +218,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-5",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1516321497487-e288fb19713f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Configurar impresora fiscal y Wi-Fi",
@@ -232,6 +238,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-6",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Cortar el pasto y ordenar patio",
@@ -251,6 +258,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-7",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Armado de placard con puertas corredizas",
@@ -270,6 +278,7 @@ export const jobs: Job[] = [
   },
   {
     id: "sample-job-8",
+    listingType: "request",
     image:
       "https://images.unsplash.com/photo-1484154218962-a197022b5858?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     title: "Pintar una cocina chica",
@@ -286,6 +295,46 @@ export const jobs: Job[] = [
     postedByUserId: currentUserId,
     postedAt: "2026-04-07T14:30:00.000Z",
     status: "completado",
+  },
+  {
+    id: "sample-job-9",
+    listingType: "service",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    title: "Desde Arriba | Filmaciones aereas para eventos, inmuebles y campos",
+    description:
+      "Servicio de tomas con drone para eventos, propiedades, campos, avances de obra y contenido de marca. Miro cada proyecto desde otra perspectiva y entrego material listo para compartir.",
+    category: "Eventos",
+    priceLabel: "Desde $95.000",
+    priceValue: 95000,
+    rating: 4.9,
+    distanceKm: 1.4,
+    location: "Rafaela, Santa Fe",
+    availability: "Disponible esta semana",
+    urgency: "normal",
+    postedByUserId: currentUserId,
+    postedAt: "2026-04-16T15:40:00.000Z",
+    status: "publicado",
+  },
+  {
+    id: "sample-job-10",
+    listingType: "service",
+    image:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    title: "Soporte IT para comercios y oficinas chicas",
+    description:
+      "Armado de redes, puesta a punto de PCs, impresoras fiscales, Wi-Fi y soporte preventivo para locales y estudios. Ideal para negocios que necesitan respuesta rapida y ordenada.",
+    category: "Tecnología",
+    priceLabel: "Desde $28.000",
+    priceValue: 28000,
+    rating: 4.8,
+    distanceKm: 5.3,
+    location: "Santa Fe capital, Santa Fe",
+    availability: "Turnos por la manana y tarde",
+    urgency: "normal",
+    postedByUserId: "sample-user-martin",
+    postedAt: "2026-04-14T10:05:00.000Z",
+    status: "publicado",
   },
 ];
 
@@ -496,6 +545,10 @@ export function getSampleJobs(params: SampleSearchParams = {}) {
         return false;
       }
 
+      if (params.listingType && job.listingType !== params.listingType) {
+        return false;
+      }
+
       if (params.onlyUrgent && job.urgency !== "urgente") {
         return false;
       }
@@ -505,7 +558,7 @@ export function getSampleJobs(params: SampleSearchParams = {}) {
       }
 
       const haystack = normalizeValue(
-        [job.title, job.description, job.category, job.location, job.availability].join(" "),
+        [job.title, job.description, job.category, job.location, job.availability, job.listingType].join(" "),
       );
 
       return normalizedQuery
