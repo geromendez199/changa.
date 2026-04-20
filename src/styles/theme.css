@@ -113,11 +113,11 @@
 @media (min-width: 768px) {
   :root {
     --font-size: 16px;
-    --app-shell-padding: 28px;
-    --app-header-top: 56px;
-    --app-header-bottom: 24px;
-    --app-control-height-md: 52px;
-    --app-control-height-lg: 56px;
+    --app-shell-padding: 24px;
+    --app-header-top: 44px;
+    --app-header-bottom: 20px;
+    --app-control-height-md: 48px;
+    --app-control-height-lg: 52px;
     --app-icon-button-size: 44px;
     --app-bottom-nav-height: 80px;
     --app-bottom-nav-label-size: 10px;
@@ -126,17 +126,20 @@
 
 @media (min-width: 1024px) {
   :root {
-    --app-shell-padding: 40px;
-    --app-content-max: 1520px;
-    --app-header-top: 44px;
-    --app-header-bottom: 28px;
+    --app-shell-padding: 28px;
+    --app-content-max: 1360px;
+    --app-header-top: 36px;
+    --app-header-bottom: 22px;
+    --app-control-height-md: 46px;
+    --app-control-height-lg: 50px;
+    --app-icon-button-size: 42px;
   }
 }
 
 @media (min-width: 1440px) {
   :root {
-    --app-shell-padding: 56px;
-    --app-content-max: 1640px;
+    --app-shell-padding: 36px;
+    --app-content-max: 1440px;
   }
 }
 
@@ -344,6 +347,12 @@
     border-top: 1px solid var(--app-border);
     backdrop-filter: blur(16px);
     box-shadow: 0 -10px 30px rgba(17, 24, 39, 0.08);
+  }
+
+  @media (min-width: 1024px) {
+    .app-floating-bar {
+      box-shadow: 0 -8px 24px rgba(17, 24, 39, 0.06);
+    }
   }
 
   .app-icon-button {

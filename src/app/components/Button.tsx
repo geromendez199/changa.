@@ -44,10 +44,10 @@ export function Button({
   };
 
   const sizes = {
-    sm: "min-h-10 px-4 text-sm",
-    md: "min-h-[52px] px-5 text-[15px]",
-    lg: "min-h-[56px] px-6 text-base",
-    icon: "h-11 w-11 p-0",
+    sm: "min-h-9 px-3.5 text-sm sm:min-h-10 sm:px-4",
+    md: "min-h-[46px] px-4 text-[14px] sm:min-h-[50px] sm:px-5 sm:text-[15px] lg:min-h-[46px] lg:px-4 lg:text-[14px]",
+    lg: "min-h-[50px] px-5 text-[15px] sm:min-h-[54px] sm:px-6 sm:text-base lg:min-h-[48px] lg:px-5 lg:text-[15px]",
+    icon: "h-10 w-10 p-0 sm:h-11 sm:w-11",
   };
 
   return (
