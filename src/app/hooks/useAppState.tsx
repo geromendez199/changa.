@@ -2,7 +2,15 @@
  * WHY: Keep the public app-state API stable while delegating domain logic to focused hooks.
  * CHANGED: YYYY-MM-DD
  */
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useAuth } from "../../context/AuthContext";
 import { currentUserId as previewUserId } from "../../data/mockData";
 import { useChatState } from "../../hooks/useChatState";
@@ -55,9 +63,11 @@ interface AppStateValue {
   removePublishedJob: (jobId: string) => Promise<{ ok: boolean; message: string }>;
   withdrawMyApplication: (applicationId: string) => Promise<{ ok: boolean; message: string }>;
   loadJobApplications: (jobId: string) => Promise<Application[]>;
-  applyToJob: (
-    input: { jobId: string; coverMessage: string; proposedAmount: number },
-  ) => Promise<{ ok: boolean; message: string; application: Application | null }>;
+  applyToJob: (input: {
+    jobId: string;
+    coverMessage: string;
+    proposedAmount: number;
+  }) => Promise<{ ok: boolean; message: string; application: Application | null }>;
   setApplicationDecision: (input: {
     applicationId: string;
     jobId: string;
@@ -69,7 +79,10 @@ interface AppStateValue {
     participant2Id: string;
     jobId: string;
   }) => Promise<{ ok: boolean; message?: string; conversation: Conversation | null }>;
-  sendMessage: (conversationId: string, content: string) => Promise<{ ok: boolean; message?: string }>;
+  sendMessage: (
+    conversationId: string,
+    content: string,
+  ) => Promise<{ ok: boolean; message?: string }>;
   refreshJobs: (params?: SearchJobsParams) => Promise<void>;
   loadJobById: (id: string) => Promise<Job | null>;
   refreshProfile: (userId: string) => Promise<void>;
@@ -123,12 +136,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     ensureConversation,
     resetChatState,
   } = useChatState({ userId: effectiveUserId, pushError });
-  const {
-    paymentMethods,
-    transactions,
-    loadPaymentsData,
-    resetPaymentsState,
-  } = usePaymentsState({ userId: effectiveUserId, pushError });
+  const { paymentMethods, transactions, loadPaymentsData, resetPaymentsState } = usePaymentsState({
+    userId: effectiveUserId,
+    pushError,
+  });
   const { notifications, loadNotifications, resetNotificationsState } = useNotificationsState({
     userId: effectiveUserId,
     pushError,
@@ -150,8 +161,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setErrorMessage(null);
 
       try {
-        const jobsResult = await refreshJobsState();
-        const profilesResult = await loadPublicProfiles();
+        const baseDataPromise = Promise.all([refreshJobsState(), loadPublicProfiles()]);
+        const authenticatedDataPromise = currentUserId
+          ? Promise.all([
+              loadConversationList(),
+              loadPaymentsData(),
+              refreshProfileState(currentUserId),
+              loadAuthenticatedJobData(),
+              loadNotifications(),
+            ])
+          : null;
+
+        const [jobsResult, profilesResult] = await baseDataPromise;
         const baseSource =
           jobsResult.source === "fallback" || profilesResult.source === "fallback"
             ? "fallback"
@@ -180,31 +201,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           profileResult,
           jobsAuthResult,
           notificationsResult,
-        ] = await Promise.all([
-          loadConversationList(),
-          loadPaymentsData(),
-          refreshProfileState(currentUserId),
-          loadAuthenticatedJobData(),
-          loadNotifications(),
-        ]);
+        ] = await authenticatedDataPromise!;
 
         if (profileResult.data?.profile.location) {
           syncSelectedLocation(profileResult.data.profile.location);
         }
 
-        const combinedSource =
-          [
-            baseSource,
-            conversationsResult.source,
-            paymentsResult.methodsResult.source,
-            paymentsResult.transactionsResult.source,
-            profileResult.source,
-            jobsAuthResult.myJobsResult.source,
-            jobsAuthResult.applicationsResult.source,
-            notificationsResult.source,
-          ].includes("fallback")
-            ? "fallback"
-            : "supabase";
+        const combinedSource = [
+          baseSource,
+          conversationsResult.source,
+          paymentsResult.methodsResult.source,
+          paymentsResult.transactionsResult.source,
+          profileResult.source,
+          jobsAuthResult.myJobsResult.source,
+          jobsAuthResult.applicationsResult.source,
+          notificationsResult.source,
+        ].includes("fallback")
+          ? "fallback"
+          : "supabase";
 
         setDataSource(combinedSource);
 
@@ -374,5 +388,5 @@ export function useAppState() {
 
 export function useCurrentUser() {
   const { currentUserId, profiles } = useAppState();
-  return currentUserId ? profiles.find((user) => user.id === currentUserId) ?? null : null;
+  return currentUserId ? (profiles.find((user) => user.id === currentUserId) ?? null) : null;
 }

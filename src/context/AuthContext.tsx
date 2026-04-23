@@ -1,6 +1,20 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
-import { getCurrentSession, onAuthStateChange, signInWithEmail, signOutUser, signUpWithEmail } from "../services/auth.service";
+import {
+  getCurrentSession,
+  onAuthStateChange,
+  signInWithEmail,
+  signOutUser,
+  signUpWithEmail,
+} from "../services/auth.service";
 import { ensureProfileForUser } from "../services/profiles.service";
 
 interface AuthContextValue {
@@ -18,17 +32,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const ensureProfile = async (nextSession: Session | null) => {
+  const ensureProfile = useCallback(async (nextSession: Session | null) => {
     if (!nextSession?.user) return;
 
     await ensureProfileForUser(nextSession.user);
-  };
+  }, []);
 
-  const syncSessionProfile = async (nextSession: Session | null) => {
-    setSession(nextSession);
-    await ensureProfile(nextSession);
-    return nextSession;
-  };
+  const syncSessionProfile = useCallback(
+    async (nextSession: Session | null) => {
+      setSession(nextSession);
+      await ensureProfile(nextSession);
+      return nextSession;
+    },
+    [ensureProfile],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -37,8 +54,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentSession = await getCurrentSession();
       if (!mounted) return;
 
-      await syncSessionProfile(currentSession);
+      setSession(currentSession);
       setIsLoading(false);
+      void ensureProfile(currentSession);
     };
 
     void bootstrap();
@@ -52,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [ensureProfile]);
 
   const value = useMemo(
     () => ({
@@ -83,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return result;
       },
     }),
-    [isLoading, session],
+    [isLoading, session, syncSessionProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
