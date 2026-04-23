@@ -52,9 +52,10 @@ export function PublishConfirmation() {
   const isOwnPublication = Boolean(
     resolvedJob && currentUserId && resolvedJob.postedByUserId === currentUserId,
   );
+  const isWaitingForUserSync = Boolean(resolvedJob && !currentUserId);
   const itemLabel = resolvedJob?.listingType === "service" ? "servicio" : "publicación";
 
-  if (isLoading) {
+  if (isLoading || isWaitingForUserSync) {
     return (
       <div className="app-screen px-6 pt-20">
         <SurfaceCard padding="lg">
