@@ -15,7 +15,9 @@ const scheduleServiceWorkerRegistration = () => {
         }
       },
       onRegisterError(error: Error) {
-        console.error("[PWA] No se pudo registrar el service worker", error);
+        if (import.meta.env.DEV) {
+          console.warn("[PWA] No se pudo registrar el service worker", error);
+        }
       },
     });
   };
