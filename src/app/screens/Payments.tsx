@@ -7,17 +7,14 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
-import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { useAppState } from "../hooks/useAppState";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
 
 export function Payments() {
   const navigate = useNavigate();
-  const { paymentMethods, transactions, jobs, dataSource } = useAppState();
-  const isPreview = dataSource === "fallback";
+  const { paymentMethods, transactions, jobs } = useAppState();
 
   return (
     <div className="app-screen pb-8">
@@ -35,36 +32,29 @@ export function Payments() {
       </div>
 
       <div className="px-6 mb-6">
-        {isPreview ? (
-          <PreviewModeNotice
-            className="mb-4"
-            description={`${getFallbackPreviewMessage("pagos y movimientos")} Mostramos estructura y estados de ejemplo sin habilitar altas sensibles.`}
-          />
-        ) : null}
-
         <SectionHeader
           title="Tus métodos"
-          subtitle="Revisá los métodos sincronizados y el estado de tus movimientos."
+          subtitle="El alta de métodos todavía no está disponible desde la app."
           action={
             <Button
               variant="soft"
               size="sm"
               onClick={() =>
-                toast("Alta manual en preparación", {
+                toast("Pagos aún no disponible", {
                   description:
-                    "Estamos terminando el guardado seguro de nuevos métodos para que queden sincronizados con tu cuenta.",
+                    "Vamos a habilitar esta sección cuando el flujo de pagos esté conectado de punta a punta.",
                 })
               }
               icon={<Plus size={16} />}
             >
-              Próximamente
+              Aún no disponible
             </Button>
           }
           className="mb-4"
         />
         <SurfaceCard tone="soft" padding="sm" className="mb-4 text-sm leading-relaxed text-[var(--app-text-muted)] shadow-none">
-          Esta pantalla ya muestra movimientos y métodos sincronizados. El alta manual desde la app
-          todavía se está terminando para no guardar datos sensibles sin respaldo real.
+          Por ahora changa no procesa ni guarda medios de pago desde esta pantalla. Cuando el flujo
+          esté disponible, vas a ver acá métodos, cobros y movimientos reales.
         </SurfaceCard>
         <div className="space-y-3">
           {paymentMethods.map((method) => (
@@ -90,8 +80,7 @@ export function Payments() {
           ))}
           {paymentMethods.length === 0 ? (
             <SurfaceCard className="text-center text-sm text-[var(--app-text-muted)]" padding="lg">
-              Todavía no tenés métodos sincronizados. Cuando el alta segura esté lista, también los
-              vas a poder agregar desde esta misma pantalla.
+              Todavía no hay métodos de pago disponibles para gestionar desde la app.
             </SurfaceCard>
           ) : null}
         </div>
@@ -115,7 +104,7 @@ export function Payments() {
       </div>
 
       <div className="px-6 space-y-3">
-        <SectionHeader title="Movimientos" subtitle="Historial de pagos y cobros recientes." className="mb-4" />
+        <SectionHeader title="Movimientos" subtitle="Aparecerán cuando pagos esté habilitado y haya actividad real." className="mb-4" />
         {transactions.map((tx) => {
           const job = jobs.find((item) => item.id === tx.jobId);
           const statusBadge =

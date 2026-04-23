@@ -13,12 +13,12 @@ import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { formatRelative } from "../utils/format";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../services/service.utils";
 
 export function Notifications() {
   const navigate = useNavigate();
   const { notifications, dataSource } = useAppState();
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   return (
     <div className="app-screen pb-28">

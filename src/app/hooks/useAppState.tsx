@@ -99,7 +99,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("supabase");
 
   const pushError = useCallback((message?: string) => {
-    if (message) setErrorMessage(message);
+    setErrorMessage(message ?? null);
   }, []);
 
   const {

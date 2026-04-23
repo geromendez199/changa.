@@ -14,7 +14,7 @@ import { SurfaceCard } from "../components/SurfaceCard";
 import { Textarea } from "../components/Textarea";
 import { jobCategories } from "../constants/catalog";
 import { useAppState } from "../hooks/useAppState";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../services/service.utils";
 import { getListingTypeLabel } from "../utils/listings";
 
 const totalSteps = 4;
@@ -23,7 +23,7 @@ export function PublishJob() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addPublishedJob, updatePublishedJob, myJobs, dataSource } = useAppState();
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
   const editingJobId = searchParams.get("edit");
   const jobToEdit = editingJobId ? myJobs.find((job) => job.id === editingJobId) ?? null : null;
   const isEditing = Boolean(jobToEdit);
@@ -193,7 +193,7 @@ export function PublishJob() {
       <div className="space-y-6 px-6 py-8">
         {isPreview ? (
           <PreviewModeNotice
-            description={`${getFallbackPreviewMessage("este formulario de publicación")} Podés recorrer los pasos, pero la publicación real necesita Supabase.`}
+            description={`${getFallbackPreviewMessage("este formulario de publicación")} Podés recorrer los pasos, pero la publicación real está deshabilitada en esta vista previa.`}
           />
         ) : null}
 
@@ -414,8 +414,8 @@ export function PublishJob() {
             {step === totalSteps
               ? isPreview
                 ? isEditing
-                  ? "Guardar cambios con Supabase"
-                  : "Publicación real con Supabase"
+                  ? "Guardado no disponible en vista previa"
+                  : "Publicación no disponible en vista previa"
                 : publishing
                   ? isEditing
                     ? "Guardando..."

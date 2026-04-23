@@ -14,7 +14,7 @@ interface PreviewModeNoticeProps {
 }
 
 export function PreviewModeNotice({
-  title = "Vista previa local",
+  title = "Modo de prueba",
   description,
   className,
   compact = false,

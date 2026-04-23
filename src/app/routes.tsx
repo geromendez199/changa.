@@ -108,6 +108,7 @@ export const router = createBrowserRouter([
     path: "/publish/confirm/:id",
     element: <ProtectedRoute Component={PublishConfirmationScreen} />,
   },
+  { path: "/jobs", element: <Navigate to="/my-jobs" replace /> },
   { path: "/my-jobs", element: <ProtectedRoute Component={MyJobsScreen} /> },
   { path: "/chat", element: <ProtectedRoute Component={ChatScreen} /> },
   { path: "/chat/:id", element: <ProtectedRoute Component={ChatDetailScreen} /> },

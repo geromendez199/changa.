@@ -18,7 +18,7 @@ import { UserAvatar } from "../components/UserAvatar";
 import { useAppState } from "../hooks/useAppState";
 import { Application, Job } from "../../types/domain";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../services/service.utils";
 import { getListingActionCopy, getListingTypeLabel } from "../utils/listings";
 
 export function JobDetail() {
@@ -43,7 +43,7 @@ export function JobDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   useEffect(() => {
     async function load() {

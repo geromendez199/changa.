@@ -14,7 +14,7 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { Textarea } from "../../components/Textarea";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState, useCurrentUser } from "../../hooks/useAppState";
-import { getFallbackPreviewMessage } from "../../../services/service.utils";
+import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../../services/service.utils";
 
 const MAX_AVATAR_FILE_SIZE_BYTES = 6 * 1024 * 1024;
 const AVATAR_MAX_DIMENSION_PX = 512;
@@ -98,7 +98,7 @@ export function EditProfile() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   useEffect(() => {
     if (!user) return;
@@ -219,7 +219,7 @@ export function EditProfile() {
       <div className="space-y-4 px-6 py-6">
         {isPreview ? (
           <PreviewModeNotice
-            description={`${getFallbackPreviewMessage("la edición de perfil")} Podés revisar la interfaz, pero el guardado real sigue deshabilitado.`}
+            description={`${getFallbackPreviewMessage("la edición de perfil")} Podés revisar la interfaz, pero el guardado real está deshabilitado en esta vista previa.`}
           />
         ) : null}
 
@@ -309,7 +309,7 @@ export function EditProfile() {
           icon={<Save size={18} />}
           disabled={isSaving || isPreview || isProcessingAvatar}
         >
-          {isPreview ? "Guardado real disponible con Supabase" : isSaving ? "Guardando..." : "Guardar cambios"}
+          {isPreview ? "Guardado no disponible en vista previa" : isSaving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </div>
     </div>

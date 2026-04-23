@@ -18,7 +18,7 @@ import { PreviewModeNotice } from "../components/PreviewModeNotice";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
-import { getFallbackPreviewMessage } from "../../services/service.utils";
+import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../services/service.utils";
 import type { Job } from "../../types/domain";
 
 const sortingOptions = [
@@ -40,7 +40,7 @@ export function SearchResults() {
   const [showFilters, setShowFilters] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
   const shouldShowLoadingCards = isLoading && jobs.length === 0;
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   useEffect(() => {
     void refreshJobs({ query, category, listingType: listingType === "all" ? undefined : listingType, onlyUrgent, sortBy });

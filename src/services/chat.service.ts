@@ -67,7 +67,7 @@ export async function getConversationMessages(conversationId: string): Promise<S
 export async function sendChatMessage(input: { conversationId: string; senderUserId: string; content: string }): Promise<ServiceResult<Message | null>> {
   try {
     const validatedInput = parseWithValidation(chatMessageSchema, input);
-    if (shouldUseFallback()) return failureResult(null, "Configurá Supabase para enviar mensajes reales.");
+    if (shouldUseFallback()) return failureResult(null, "No se pueden enviar mensajes reales en esta vista previa.");
 
     const { data, error } = await supabase!.rpc("send_message", {
       p_conversation_id: validatedInput.conversationId,

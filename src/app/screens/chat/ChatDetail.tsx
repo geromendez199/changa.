@@ -13,6 +13,7 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState } from "../../hooks/useAppState";
 import { formatRelative } from "../../utils/format";
+import { isLocalPreviewSource } from "../../../services/service.utils";
 
 export function ChatDetail() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export function ChatDetail() {
   const { conversations, messages, currentUserId, sendMessage, jobs, profiles, refreshChatDetail, dataSource } = useAppState();
   const [text, setText] = useState("");
   const [composerFeedback, setComposerFeedback] = useState<string | null>(null);
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   const conversation = conversations.find((item) => item.id === id);
 

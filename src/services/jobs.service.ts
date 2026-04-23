@@ -46,11 +46,22 @@ export interface UpdateJobInput extends CreateJobInput {
 
 const DEFAULT_JOB_IMAGE =
   "https://images.unsplash.com/photo-1556911220-bff31c812dba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const mapJobs = (rows: unknown): Job[] =>
   toSafeArray<Partial<JobsRow>>(rows)
     .map(mapJobRow)
     .filter((job) => isNonEmptyString(job.id));
+
+function isValidUuid(value: string) {
+  return UUID_PATTERN.test(value.trim());
+}
+
+function toIlikePattern(value: string) {
+  const safeTerm = value.trim().replace(/[%,()]/g, " ").replace(/\s+/g, " ");
+  return `%${safeTerm}%`;
+}
 
 async function ensureAuthorProfileReady(postedByUserId: string) {
   if (!isNonEmptyString(postedByUserId) || shouldUseFallback()) return;
@@ -106,11 +117,15 @@ export async function searchJobs(params: SearchJobsParams): Promise<ServiceResul
       query = query.eq("urgency", "urgente");
     }
     if (validatedParams.query?.trim()) {
-      const sanitized = validatedParams.query.trim().replace(/[&|!():<>]/g, " ");
-      query = query.textSearch("search_document", sanitized, {
-        config: "simple",
-        type: "websearch",
-      });
+      const pattern = toIlikePattern(validatedParams.query);
+      query = query.or(
+        [
+          `title.ilike.${pattern}`,
+          `description.ilike.${pattern}`,
+          `category.ilike.${pattern}`,
+          `location.ilike.${pattern}`,
+        ].join(","),
+      );
     }
 
     query =
@@ -129,7 +144,11 @@ export async function searchJobs(params: SearchJobsParams): Promise<ServiceResul
 
 export async function getJobById(id: string): Promise<ServiceResult<Job | null>> {
   if (!isNonEmptyString(id)) {
-    return failureResult(null, "No pudimos encontrar ese trabajo.");
+    return successResult(null);
+  }
+
+  if (!isValidUuid(id)) {
+    return successResult(null);
   }
 
   if (shouldUseFallback()) {
@@ -204,6 +223,10 @@ export async function createJob(input: CreateJobInput): Promise<ServiceResult<Jo
 }
 
 export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Job | null>> {
+  if (!isNonEmptyString(input.id) || !isValidUuid(input.id)) {
+    return failureResult(null, "No encontramos esa publicación para editar.");
+  }
+
   try {
     const validatedInput = parseWithValidation(jobCreateSchema, {
       ...input,
@@ -270,6 +293,10 @@ export async function updateJob(input: UpdateJobInput): Promise<ServiceResult<Jo
 export async function deleteJob(jobId: string, postedByUserId: string): Promise<ServiceResult<boolean>> {
   if (!isNonEmptyString(jobId) || !isNonEmptyString(postedByUserId)) {
     return failureResult(false, "No pudimos identificar la changa que querés eliminar.");
+  }
+
+  if (!isValidUuid(jobId)) {
+    return failureResult(false, "No encontramos esa publicación para eliminar.");
   }
 
   try {

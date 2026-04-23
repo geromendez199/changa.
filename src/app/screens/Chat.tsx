@@ -14,11 +14,12 @@ import { ScreenHeader } from "../components/ScreenHeader";
 import { SkeletonBlock } from "../components/SkeletonBlock";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
+import { isLocalPreviewSource } from "../../services/service.utils";
 
 export function Chat() {
   const navigate = useNavigate();
   const { conversations, messages, currentUserId, jobs, profiles, isLoading, dataSource } = useAppState();
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   const rows = conversations
     .map((conv) => {

@@ -31,7 +31,11 @@ export function failureResult<T>(data: T, error: string, source: "supabase" | "f
 export const FALLBACK_MODE = !isSupabaseEnabled || !supabase;
 export const IS_DEVELOPMENT_FALLBACK = FALLBACK_MODE && import.meta.env.DEV;
 export const FALLBACK_PREVIEW_MESSAGE =
-  "Estás viendo una vista previa local con datos de muestra. Conectá Supabase para usar cuentas e información reales.";
+  "Estás viendo una vista previa local con datos de muestra. Los cambios reales están disponibles cuando la app está configurada.";
+
+export function isLocalPreviewSource(source: "supabase" | "fallback") {
+  return IS_DEVELOPMENT_FALLBACK && source === "fallback";
+}
 
 function normalizeSupabaseMessage(message: string) {
   const normalizedMessage = message.trim();
@@ -67,7 +71,25 @@ function normalizeSupabaseMessage(message: string) {
     lowerMessage.includes("bucket not fund") ||
     (lowerMessage.includes("bucket") && lowerMessage.includes("not found"))
   ) {
-    return "No está configurado el bucket de fotos de perfil en Supabase. Creá `profile-avatars` y sus políticas de Storage para poder subir avatares.";
+    return "No pudimos guardar la foto de perfil. Probá nuevamente más tarde o guardá el perfil sin cambiar la imagen.";
+  }
+
+  const exposesInternalDetails =
+    lowerMessage.includes("does not exist") ||
+    lowerMessage.includes("invalid input syntax") ||
+    lowerMessage.includes("type uuid") ||
+    lowerMessage.includes("schema cache") ||
+    lowerMessage.includes("relation ") ||
+    lowerMessage.includes("column ") ||
+    lowerMessage.includes("postgrest") ||
+    lowerMessage.includes("supabase") ||
+    lowerMessage.includes("stack trace") ||
+    lowerMessage.includes("violates check constraint") ||
+    lowerMessage.includes("violates not-null constraint") ||
+    lowerMessage.includes("violates row-level security");
+
+  if (exposesInternalDetails) {
+    return "No pudimos completar la acción. Intentá nuevamente en unos minutos.";
   }
 
   return normalizedMessage;
@@ -75,7 +97,7 @@ function normalizeSupabaseMessage(message: string) {
 
 export function normalizeError(error: unknown, fallbackMessage = "Error inesperado al consultar datos."): string {
   if (!error) return fallbackMessage;
-  if (typeof error === "string") return error;
+  if (typeof error === "string") return normalizeSupabaseMessage(error);
   if (error instanceof ValidationError) return error.message;
 
   const pgError = error as PostgrestError;
@@ -121,11 +143,11 @@ export async function ensureAuthenticatedUser(expectedUserId?: string) {
 }
 
 export function getFallbackPreviewMessage(scope = "esta sección") {
-  return `Estás viendo ${scope} con datos de muestra en un entorno local. Conectá Supabase para trabajar con información real.`;
+  return `Estás viendo ${scope} con datos de muestra en un entorno local. Los cambios reales están disponibles cuando la app está configurada.`;
 }
 
 export function getFallbackActionMessage(action: string) {
-  return `${action} necesita Supabase configurado para funcionar con datos reales.`;
+  return `${action} no está disponible en esta vista previa local.`;
 }
 
 export function isNonEmptyString(value: unknown): value is string {

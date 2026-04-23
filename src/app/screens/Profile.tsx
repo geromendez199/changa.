@@ -13,13 +13,14 @@ import { EmptyStateCard } from "../components/EmptyStateCard";
 import { SectionHeader } from "../components/SectionHeader";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
+import { isLocalPreviewSource } from "../../services/service.utils";
 
 export function Profile() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { profiles, reviews, refreshProfile, isLoading, dataSource } = useAppState();
   const { signOut, userId: authUserId } = useAuth();
-  const isPreview = dataSource === "fallback";
+  const isPreview = isLocalPreviewSource(dataSource);
 
   useEffect(() => {
     if (currentUser?.id) void refreshProfile(currentUser.id);

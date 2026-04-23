@@ -48,7 +48,7 @@ export function onAuthStateChange(callback: (event: AuthChangeEvent, session: Se
 export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
   try {
     const credentials = parseWithValidation(authCredentialsSchema, { email, password });
-    if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para iniciar sesión." };
+    if (shouldUseFallback()) return { ok: false, message: "El inicio de sesión no está disponible en esta vista previa." };
 
     const { error } = await supabase!.auth.signInWithPassword({
       email: credentials.email,
@@ -64,7 +64,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
 export async function signUpWithEmail(email: string, password: string): Promise<AuthResult> {
   try {
     const credentials = parseWithValidation(authCredentialsSchema, { email, password });
-    if (shouldUseFallback()) return { ok: false, message: "Falta configurar Supabase para crear la cuenta." };
+    if (shouldUseFallback()) return { ok: false, message: "El registro no está disponible en esta vista previa." };
 
     const { error } = await supabase!.auth.signUp({
       email: credentials.email,
