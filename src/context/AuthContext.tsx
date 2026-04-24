@@ -12,6 +12,7 @@ import {
   getCurrentSession,
   onAuthStateChange,
   signInWithEmail,
+  signInWithGoogle,
   signOutUser,
   signUpWithEmail,
 } from "../services/auth.service";
@@ -22,6 +23,7 @@ interface AuthContextValue {
   userId: string | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; message?: string }>;
+  signInWithGoogle: (redirectPath?: string) => Promise<{ ok: boolean; message?: string }>;
   signUp: (email: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   signOut: () => Promise<{ ok: boolean; message?: string }>;
 }
@@ -85,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await syncSessionProfile(nextSession);
         return result;
       },
+      signInWithGoogle: async (redirectPath?: string) => signInWithGoogle(redirectPath),
       signUp: async (email: string, password: string) => {
         const result = await signUpWithEmail(email, password);
         if (result.ok) {

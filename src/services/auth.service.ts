@@ -4,7 +4,7 @@
  */
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { authCredentialsSchema, parseWithValidation } from "../lib/validation/schemas";
-import { shouldUseFallback, normalizeError } from "./service.utils";
+import { isNonEmptyString, shouldUseFallback, normalizeError } from "./service.utils";
 import { supabase } from "../lib/supabase";
 
 export interface AuthResult {
@@ -21,6 +21,16 @@ function mapAuthError(error: unknown): string {
   if (errorMessage.includes("Email not confirmed")) return "Confirmá tu email para continuar.";
 
   return errorMessage;
+}
+
+function buildOAuthRedirectUrl(redirectPath = "/home") {
+  const fallbackPath = "/home";
+  const safePath =
+    isNonEmptyString(redirectPath) && redirectPath.startsWith("/") && !redirectPath.startsWith("//")
+      ? redirectPath
+      : fallbackPath;
+
+  return new URL(safePath, window.location.origin).toString();
 }
 
 export async function getCurrentSession(): Promise<Session | null> {
@@ -73,6 +83,29 @@ export async function signUpWithEmail(email: string, password: string): Promise<
     if (error) throw error;
 
     return { ok: true, message: "Cuenta creada. Revisá tu email si tu proyecto requiere confirmación." };
+  } catch (error) {
+    return { ok: false, message: mapAuthError(error) };
+  }
+}
+
+export async function signInWithGoogle(redirectPath = "/home"): Promise<AuthResult> {
+  if (shouldUseFallback()) {
+    return { ok: false, message: "Google Auth no está disponible en esta vista previa." };
+  }
+
+  try {
+    const { error } = await supabase!.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: buildOAuthRedirectUrl(redirectPath),
+        queryParams: {
+          prompt: "select_account",
+        },
+      },
+    });
+
+    if (error) throw error;
+    return { ok: true };
   } catch (error) {
     return { ok: false, message: mapAuthError(error) };
   }

@@ -69,3 +69,17 @@ These variables must be set in both local development and Vercel production envi
 - Never expose the Supabase `service_role` key in frontend code.
 - The current app only uses the anon key in Vite environment variables.
 - Production should not rely on fallback mode. Missing Supabase variables in production are treated as a startup error.
+
+## Google Auth setup
+
+Google login is handled through Supabase Auth using `signInWithOAuth`.
+
+Required dashboard setup:
+
+- In Google Auth Platform, create a Web application OAuth client.
+- Add the app origin to Authorized JavaScript origins, including local development while needed.
+- Add the Supabase Google provider callback URL to Authorized redirect URIs.
+- In Supabase Auth -> Providers -> Google, enable Google and paste the Google Client ID and Client Secret.
+- In Supabase Auth URL Configuration, allow the app redirect URLs used by the SPA, for example local development and production URLs.
+
+Do not put the Google Client Secret in Vite environment variables or frontend code.

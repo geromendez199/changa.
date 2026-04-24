@@ -11,14 +11,23 @@ import { BrandLogo } from "../../components/BrandLogo";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { sanitizeRedirectPath } from "../../utils/navigation";
 
+function GoogleIcon() {
+  return (
+    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-[#4285F4]">
+      G
+    </span>
+  );
+}
+
 export function Login() {
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const validate = () => {
     if (!email.includes("@")) return "Ingresá un email válido.";
@@ -39,6 +48,16 @@ export function Login() {
 
     const redirectTo = sanitizeRedirectPath(new URLSearchParams(location.search).get("redirect"));
     navigate(redirectTo, { replace: true });
+  };
+
+  const onGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError(null);
+    const redirectTo = sanitizeRedirectPath(new URLSearchParams(location.search).get("redirect"));
+    const result = await signInWithGoogle(redirectTo);
+    setGoogleLoading(false);
+
+    if (!result.ok) setError(result.message || "No se pudo iniciar sesión con Google.");
   };
 
   return (
@@ -87,6 +106,19 @@ export function Login() {
         <div className="mt-6">
           <Button fullWidth onClick={onSubmit} disabled={loading} data-testid="login-submit-button">
             {loading ? "Ingresando..." : "Entrar"}
+          </Button>
+        </div>
+
+        <div className="mt-3">
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => void onGoogleSignIn()}
+            disabled={loading || googleLoading}
+            icon={<GoogleIcon />}
+            data-testid="login-google-button"
+          >
+            {googleLoading ? "Abriendo Google..." : "Continuar con Google"}
           </Button>
         </div>
 

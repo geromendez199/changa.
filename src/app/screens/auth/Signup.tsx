@@ -11,8 +11,16 @@ import { useAuth } from "../../../context/AuthContext";
 import { BrandLogo } from "../../components/BrandLogo";
 import { SurfaceCard } from "../../components/SurfaceCard";
 
+function GoogleIcon() {
+  return (
+    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-[#4285F4]">
+      G
+    </span>
+  );
+}
+
 export function Signup() {
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +28,7 @@ export function Signup() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const validate = () => {
     if (!email.includes("@")) return "Ingresá un email válido.";
@@ -46,6 +55,16 @@ export function Signup() {
       description: "Ya podés iniciar sesión.",
     });
     setTimeout(() => navigate("/login"), 900);
+  };
+
+  const onGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError(null);
+    setSuccess(null);
+    const result = await signInWithGoogle("/home");
+    setGoogleLoading(false);
+
+    if (!result.ok) setError(result.message || "No se pudo continuar con Google.");
   };
 
   return (
@@ -96,6 +115,18 @@ export function Signup() {
         <div className="mt-6">
           <Button fullWidth onClick={onSubmit} disabled={loading}>
             {loading ? "Creando..." : "Crear cuenta"}
+          </Button>
+        </div>
+
+        <div className="mt-3">
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => void onGoogleSignIn()}
+            disabled={loading || googleLoading}
+            icon={<GoogleIcon />}
+          >
+            {googleLoading ? "Abriendo Google..." : "Continuar con Google"}
           </Button>
         </div>
 

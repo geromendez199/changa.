@@ -79,7 +79,12 @@ export async function ensureProfileForUser(user: User): Promise<ServiceResult<Pr
   if (!user?.id) return failureResult(null, "No pudimos validar tu perfil.");
   if (shouldUseFallback()) return successResult(null, "fallback");
 
-  const defaultName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
+  const defaultName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    "Usuario";
+  const defaultAvatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
   try {
     const { data: existingProfile, error: existingError } = await supabase!
@@ -94,7 +99,13 @@ export async function ensureProfileForUser(user: User): Promise<ServiceResult<Pr
       return successResult(mapProfileRow(existingProfile));
     }
 
-    const payload = buildDefaultProfilePayload(user.id, defaultName, "Ubicación pendiente");
+    const payload = buildDefaultProfilePayload(
+      user.id,
+      defaultName,
+      "Ubicación pendiente",
+      null,
+      defaultAvatarUrl,
+    );
 
     const { data, error } = await supabase!
       .from("profiles")
