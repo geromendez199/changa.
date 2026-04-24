@@ -34,7 +34,7 @@ export function SectionHeader({
       {action ?? (actionLabel && onAction ? (
         <button
           onClick={onAction}
-          className="shrink-0 text-sm font-semibold text-[var(--app-brand)] transition-colors hover:text-[var(--app-brand-strong)]"
+          className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2 text-sm font-semibold text-[var(--app-brand)] transition-colors hover:text-[var(--app-brand-strong)] min-[380px]:min-h-10"
         >
           {actionLabel}
         </button>

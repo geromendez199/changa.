@@ -42,7 +42,7 @@ export function Login() {
   };
 
   return (
-    <div className="app-screen flex items-center px-6 pt-12 pb-10">
+    <div className="app-screen flex items-center px-[var(--app-shell-padding)] pt-12 pb-10">
       <SurfaceCard className="mx-auto w-full max-w-md" padding="lg">
         <div className="mb-6 flex justify-center">
           <BrandLogo
@@ -52,7 +52,7 @@ export function Login() {
           />
         </div>
 
-        <h1 className="mb-6 text-2xl font-bold tracking-[-0.02em] text-[var(--app-text)]">
+        <h1 className="mb-6 text-2xl font-bold tracking-normal text-[var(--app-text)]">
           Iniciar sesión
         </h1>
 
@@ -92,7 +92,7 @@ export function Login() {
 
         <p className="mt-5 text-center text-sm text-[var(--app-text-muted)]">
           ¿No tenés cuenta?{" "}
-          <Link to="/signup" className="font-semibold text-[var(--app-brand)]">
+          <Link to="/signup" className="inline-flex min-h-9 items-center rounded-full px-1 font-semibold text-[var(--app-brand)]">
             Crear cuenta
           </Link>
         </p>

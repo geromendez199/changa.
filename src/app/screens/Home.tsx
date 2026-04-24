@@ -79,7 +79,7 @@ export function Home() {
                 </div>
                 <button
                   onClick={requestDeviceLocation}
-                  className="text-xs font-semibold text-[var(--app-brand)]"
+                  className="inline-flex min-h-9 items-center rounded-full px-2 text-xs font-semibold text-[var(--app-brand)]"
                 >
                   Actualizar
                 </button>
