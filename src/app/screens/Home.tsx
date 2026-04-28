@@ -1,3 +1,4 @@
+import { useDocumentHead } from "@/hooks/useDocumentHead";
 /**
  * WHY: Keep the home screen simple and focused on finding changas fast without extra explanatory blocks.
  * CHANGED: YYYY-MM-DD
@@ -19,6 +20,11 @@ import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { getListingTypePluralLabel } from "../utils/listings";
 
 export function Home() {
+  useDocumentHead({
+    title: "Encontrá changas cerca tuyo — changa.",
+    description: "Browsea y postulá a changas locales en tu zona.",
+    canonical: "https://www.changa.blog/home",
+  });
   const navigate = useNavigate();
   const {
     jobs,
@@ -276,3 +282,13 @@ export function Home() {
     </div>
   );
 }
+
+// SEO Hook (agregado al inicio del componente)
+import { useDocumentHead } from "@/hooks/useDocumentHead";
+
+// Usar en Home component:
+// useDocumentHead({
+//   title: "Encontrá changas cerca tuyo — changa.",
+//   description: "Browsea y postulá a changas locales en tu zona.",
+//   canonical: "https://www.changa.blog/home",
+// });

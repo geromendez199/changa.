@@ -1,3 +1,4 @@
+import { useDocumentHead } from "@/hooks/useDocumentHead";
 /**
  * WHY: Improve search clarity with stronger marketplace copy, steadier loading states, and more useful empty-state guidance.
  * CHANGED: YYYY-MM-DD

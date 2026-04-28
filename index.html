@@ -1,27 +1,48 @@
-
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>changa.</title>
-      <meta name="application-name" content="changa." />
-      <meta name="apple-mobile-web-app-title" content="changa." />
-      <meta name="mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="theme-color" content="#0dae79" />
-      <meta name="description" content="Marketplace local para pedir ayuda, publicar servicios y coordinar changas desde el celu." />
-      <link rel="icon" type="image/svg+xml" href="/brand/logo.svg" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-    </head>
-
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="changa. — Marketplace local para pedir y ofrecer servicios" />
+    <meta name="theme-color" content="#ffffff" />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="changa. — Marketplace local para pedir y ofrecer servicios" />
+    <meta property="og:description" content="Encontrá y ofrecé changas locales. Servicios rápidos, confiables y sin intermediarios." />
+    <meta property="og:url" content="https://www.changa.blog" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="changa. — Marketplace local para pedir y ofrecer servicios" />
+    <meta name="twitter:description" content="Encontrá y ofrecé changas locales. Servicios rápidos, confiables y sin intermediarios." />
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://www.changa.blog" />
+    
+    <!-- Preconnect / DNS Prefetch -->
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://supabase.co" />
+    
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "changa",
+        "url": "https://www.changa.blog",
+        "description": "Marketplace local para pedir y ofrecer servicios",
+        "sameAs": []
+      }
+    </script>
+    
+    <title>changa. — Marketplace local para pedir y ofrecer servicios</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /search
+Allow: /job/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /*?ref=
+Disallow: /*?utm_
+
+User-agent: GPTBot
+Allow: /home
+Allow: /job/
+Disallow: /auth/
+Disallow: /dashboard/
+
+User-agent: ClaudeBot
+Allow: /home
+Allow: /job/
+Disallow: /auth/
+Disallow: /dashboard/
+
+User-agent: Google-Extended
+Allow: /home
+Allow: /job/
+Disallow: /auth/
+Disallow: /dashboard/
+
+Sitemap: https://www.changa.blog/sitemap.xml

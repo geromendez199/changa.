@@ -1,3 +1,4 @@
+import { useDocumentHead } from "@/hooks/useDocumentHead";
 /**
  * WHY: Standardize job management screens with clearer tabs, consistent status badges, and calmer card hierarchy.
  * CHANGED: YYYY-MM-DD
