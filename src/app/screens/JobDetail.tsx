@@ -1,3 +1,4 @@
+import { optimizeImageUrl, buildImageSrcSet } from '@/lib/image';
 import { useDocumentHead, buildJobPostingJsonLd } from "@/hooks/useDocumentHead";
 /**
  * WHY: Turn job detail into a complete marketplace flow where workers can apply and clients can manage applicants with chat continuity.

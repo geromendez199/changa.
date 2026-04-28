@@ -1,3 +1,4 @@
+import { optimizeImageUrl, buildImageSrcSet } from '@/lib/image';
 /**
  * WHY: Make job cards feel more premium and scannable with calmer surfaces, clearer metadata, and standardized status chips.
  * CHANGED: YYYY-MM-DD

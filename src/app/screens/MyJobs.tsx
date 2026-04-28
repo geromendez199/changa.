@@ -1,3 +1,4 @@
+import { optimizeImageUrl } from '@/lib/image';
 import { useDocumentHead } from "@/hooks/useDocumentHead";
 /**
  * WHY: Standardize job management screens with clearer tabs, consistent status badges, and calmer card hierarchy.
