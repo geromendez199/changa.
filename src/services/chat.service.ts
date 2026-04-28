@@ -114,3 +114,102 @@ export async function getOrCreateConversation(input: {
     return failureResult(null, normalizeError(error, "No pudimos abrir el chat de esta changa."));
   }
 }
+
+/**
+ * Subscribe to realtime message updates for a conversation
+ */
+export function subscribeToConversationMessages(
+  conversationId: string,
+  onMessage: (message: Message) => void
+): (() => void) | null {
+  if (!supabase || !isNonEmptyString(conversationId)) {
+    return null;
+  }
+
+  try {
+    const subscription = supabase
+      .channel(`conversation:${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          try {
+            const mapped = mapMessageRow(payload.new as MessagesRow);
+            onMessage(mapped);
+          } catch (err) {
+            console.error("Error mapping realtime message:", err);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log(`[Chat] Subscribed to conversation ${conversationId}`);
+        } else if (status === "CLOSED" || status === "CHANNEL_ERROR") {
+          console.warn(
+            `[Chat] Subscription to conversation ${conversationId} closed/error`
+          );
+        }
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  } catch (err) {
+    console.error("Error subscribing to conversation messages:", err);
+    return null;
+  }
+}
+
+/**
+ * Subscribe to realtime conversation updates for a user (new messages, reorder)
+ */
+export function subscribeToUserConversations(
+  userId: string,
+  onChange: () => void
+): (() => void) | null {
+  if (!supabase || !isNonEmptyString(userId)) {
+    return null;
+  }
+
+  try {
+    const subscription = supabase
+      .channel(`user-conversations:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `participant_1_id=eq.${userId}`,
+        },
+        () => onChange()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+          filter: `participant_2_id=eq.${userId}`,
+        },
+        () => onChange()
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log(`[Chat] Subscribed to conversations for user ${userId}`);
+        }
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  } catch (err) {
+    console.error("Error subscribing to user conversations:", err);
+    return null;
+  }
+}

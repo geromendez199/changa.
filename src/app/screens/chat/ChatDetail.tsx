@@ -14,6 +14,7 @@ import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState } from "../../hooks/useAppState";
 import { formatRelative } from "../../utils/format";
 import { isLocalPreviewSource } from "../../../services/service.utils";
+import { subscribeToConversationMessages } from "../../../services/chat.service";
 
 export function ChatDetail() {
   const navigate = useNavigate();
@@ -22,6 +23,18 @@ export function ChatDetail() {
   const [text, setText] = useState("");
   const [composerFeedback, setComposerFeedback] = useState<string | null>(null);
   const isPreview = isLocalPreviewSource(dataSource);
+  
+  // Subscribe to realtime messages
+  useEffect(() => {
+    if (!id || !currentUserId) return;
+    
+    const unsubscribe = subscribeToConversationMessages(id, (newMessage) => {
+      // Message will be added to AppState via realtime, no manual update needed
+      console.log("[Chat] Received realtime message:", newMessage.id);
+    });
+    
+    return () => unsubscribe?.();
+  }, [id, currentUserId]);
 
   const conversation = conversations.find((item) => item.id === id);
 

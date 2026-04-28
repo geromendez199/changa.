@@ -1,149 +1,80 @@
-/**
- * WHY: Isolate conversation and message state so chat behavior can evolve independently from other app concerns.
- * CHANGED: YYYY-MM-DD
- */
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
+import { Conversation, Message } from "../types/domain";
 import {
   getConversationList,
   getConversationMessages,
-  getOrCreateConversation,
-  sendChatMessage,
+  subscribeToConversationMessages,
+  subscribeToUserConversations,
 } from "../services/chat.service";
-import { shouldUseFallback, successResult } from "../services/service.utils";
-import { Conversation, Message } from "../types/domain";
 
-interface UseChatStateOptions {
-  userId: string | null;
-  pushError: (message?: string) => void;
-}
-
-interface SendMessageResult {
-  ok: boolean;
-  message?: string;
-}
-
-export function useChatState({ userId, pushError }: UseChatStateOptions) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function useChatState(userId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const loadConversationList = useCallback(async () => {
+  // Fetch initial conversations
+  useEffect(() => {
     if (!userId) {
-      setConversations([]);
-      return successResult<Conversation[]>([], "fallback");
+      setIsLoading(false);
+      return;
     }
 
-    const result = await getConversationList(userId);
-    setConversations(result.data);
-    pushError(result.error);
-    return result;
-  }, [pushError, userId]);
+    const loadConversations = async () => {
+      setIsLoading(true);
+      const result = await getConversationList(userId);
+      if (result.success) {
+        setConversations(result.data || []);
+      }
+      setIsLoading(false);
+    };
 
-  const refreshChatDetail = useCallback(
-    async (conversationId: string) => {
+    loadConversations();
+
+    // Subscribe to user's conversations
+    const unsubscribe = subscribeToUserConversations(userId, loadConversations);
+    return () => unsubscribe?.();
+  }, [userId]);
+
+  return { conversations, isLoading };
+}
+
+export function useConversationMessages(
+  conversationId: string | null,
+  userId: string | null
+) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!conversationId || !userId) {
+      setIsLoading(false);
+      return;
+    }
+
+    const loadMessages = async () => {
+      setIsLoading(true);
       const result = await getConversationMessages(conversationId);
-      setMessages((prev) => {
-        const withoutConversation = prev.filter(
-          (message) => message.conversationId !== conversationId,
-        );
-        return [...withoutConversation, ...result.data];
-      });
-      pushError(result.error);
-    },
-    [pushError],
-  );
-
-  const sendMessage = useCallback(
-    async (conversationId: string, content: string) => {
-      if (!userId) {
-        const message = "Necesitás iniciar sesión para enviar mensajes.";
-        pushError(message);
-        return { ok: false, message } satisfies SendMessageResult;
+      if (result.success) {
+        setMessages(result.data || []);
       }
+      setIsLoading(false);
+    };
 
-      const result = await sendChatMessage({
-        conversationId,
-        senderUserId: userId,
-        content,
-      });
-      if (!result.data) {
-        const message = result.error ?? "No pudimos enviar tu mensaje.";
-        pushError(message);
-        return { ok: false, message } satisfies SendMessageResult;
+    loadMessages();
+
+    // Subscribe to new messages
+    const unsubscribe = subscribeToConversationMessages(
+      conversationId,
+      (newMessage) => {
+        // Avoid duplicates: check if message already in state
+        setMessages((prev) => {
+          const exists = prev.some((m) => m.id === newMessage.id);
+          return exists ? prev : [...prev, newMessage];
+        });
       }
+    );
 
-      setMessages((prev) => [...prev, result.data!]);
-      setConversations((prev) =>
-        prev.map((conversation) =>
-          conversation.id === conversationId
-            ? { ...conversation, lastMessageAt: result.data!.createdAt }
-            : conversation,
-        ),
-      );
+    return () => unsubscribe?.();
+  }, [conversationId, userId]);
 
-      return { ok: true } satisfies SendMessageResult;
-    },
-    [pushError, userId],
-  );
-
-  const resetChatState = useCallback(() => {
-    setConversations([]);
-    setMessages([]);
-  }, []);
-
-  const ensureConversation = useCallback(
-    async (input: { participant1Id: string; participant2Id: string; jobId: string }) => {
-      if (!userId) {
-        return { ok: false, message: "Necesitás iniciar sesión para abrir el chat.", conversation: null as Conversation | null };
-      }
-
-      const existingConversation = conversations.find((conversation) => {
-        const includesBothParticipants =
-          conversation.participantIds.includes(input.participant1Id) &&
-          conversation.participantIds.includes(input.participant2Id);
-
-        return includesBothParticipants && conversation.jobId === input.jobId;
-      });
-
-      if (existingConversation) {
-        return { ok: true, conversation: existingConversation, message: undefined };
-      }
-
-      if (shouldUseFallback()) {
-        const fallbackConversation: Conversation = {
-          id: `sample-conversation-${Date.now()}`,
-          participantIds: [input.participant1Id, input.participant2Id],
-          jobId: input.jobId,
-          lastMessageAt: new Date().toISOString(),
-        };
-
-        setConversations((prev) => [fallbackConversation, ...prev]);
-        return { ok: true, conversation: fallbackConversation, message: undefined };
-      }
-
-      const result = await getOrCreateConversation(input);
-      if (!result.data) {
-        const message = result.error ?? "No pudimos abrir la conversación.";
-        pushError(message);
-        return { ok: false, message, conversation: null as Conversation | null };
-      }
-
-      setConversations((prev) => {
-        const withoutDuplicate = prev.filter((conversation) => conversation.id !== result.data!.id);
-        return [result.data!, ...withoutDuplicate];
-      });
-
-      return { ok: true, conversation: result.data, message: undefined };
-    },
-    [conversations, pushError, userId],
-  );
-
-  return {
-    conversations,
-    messages,
-    loadConversationList,
-    refreshChatDetail,
-    sendMessage,
-    ensureConversation,
-    resetChatState,
-  };
+  return { messages, isLoading };
 }
