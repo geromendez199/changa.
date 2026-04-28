@@ -1,0 +1,1 @@
+-- Avatar sync from Auth to profiles

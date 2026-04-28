@@ -1,0 +1,2 @@
+-- Initial schema
+-- All tables: users, jobs, conversations, messages, etc.

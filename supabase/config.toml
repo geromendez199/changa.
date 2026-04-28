@@ -1,0 +1,38 @@
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.seed]
+sql_paths = ["supabase/seed.sql"]
+
+[realtime]
+enabled = true
+max_bytes_per_second = 1000000
+max_connections = 5000
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://www.changa.blog"]
+jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+jwt_exp = 3600
+refresh_token_rotation_enabled = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_phone_signup = false
+phone_max_enrolled_factors = 10
+sms_autoconfirm = false
+sms_max_frequency = "3600s"
+
+[functions."verify-email"]
+verify_jwt = false
