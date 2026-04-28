@@ -1,0 +1,11 @@
+dist/
+node_modules/
+build/
+coverage/
+.next/
+out/
+.turbo/
+playwright-report/
+package-lock.json
+*.min.js
+.env*
