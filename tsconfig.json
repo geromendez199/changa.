@@ -1,6 +1,4 @@
 {
-  // WHY: Provide a project-aware TypeScript configuration for the new typecheck script.
-  // CHANGED: YYYY-MM-DD
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
@@ -18,7 +16,16 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "scripts/generate-sitemap.ts"]
 }

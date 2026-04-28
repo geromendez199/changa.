@@ -86,9 +86,9 @@ export function useDocumentHead(props: UseDocumentHeadProps) {
     // JSON-LD
     if (jsonLd) {
       const scriptId = "app-json-ld";
-      let script = document.getElementById(scriptId);
+      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
       if (script) script.remove();
-      script = document.createElement("script");
+      script = document.createElement("script") as HTMLScriptElement;
       script.id = scriptId;
       script.type = "application/ld+json";
       script.textContent = JSON.stringify(jsonLd);
@@ -110,9 +110,7 @@ export function useDocumentHead(props: UseDocumentHeadProps) {
         } else if (key === "jsonLd") {
           document.getElementById("app-json-ld")?.remove();
         } else {
-          const meta = document.querySelector(
-            `meta[name="${key}"], meta[property="${key}"]`
-          );
+          const meta = document.querySelector(`meta[name="${key}"], meta[property="${key}"]`);
           if (value) {
             meta?.setAttribute("content", value);
           } else {

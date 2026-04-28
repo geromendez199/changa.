@@ -21,26 +21,25 @@ export function useChatState(userId: string | null) {
     const loadConversations = async () => {
       setIsLoading(true);
       const result = await getConversationList(userId);
-      if (result.success) {
-        setConversations(result.data || []);
+      if (result.data) {
+        setConversations(result.data);
       }
       setIsLoading(false);
     };
 
-    loadConversations();
+    void loadConversations();
 
     // Subscribe to user's conversations
-    const unsubscribe = subscribeToUserConversations(userId, loadConversations);
+    const unsubscribe = subscribeToUserConversations(userId, () => {
+      void loadConversations();
+    });
     return () => unsubscribe?.();
   }, [userId]);
 
   return { conversations, isLoading };
 }
 
-export function useConversationMessages(
-  conversationId: string | null,
-  userId: string | null
-) {
+export function useConversationMessages(conversationId: string | null, userId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,25 +52,22 @@ export function useConversationMessages(
     const loadMessages = async () => {
       setIsLoading(true);
       const result = await getConversationMessages(conversationId);
-      if (result.success) {
-        setMessages(result.data || []);
+      if (result.data) {
+        setMessages(result.data);
       }
       setIsLoading(false);
     };
 
-    loadMessages();
+    void loadMessages();
 
     // Subscribe to new messages
-    const unsubscribe = subscribeToConversationMessages(
-      conversationId,
-      (newMessage) => {
-        // Avoid duplicates: check if message already in state
-        setMessages((prev) => {
-          const exists = prev.some((m) => m.id === newMessage.id);
-          return exists ? prev : [...prev, newMessage];
-        });
-      }
-    );
+    const unsubscribe = subscribeToConversationMessages(conversationId, (newMessage) => {
+      // Avoid duplicates: check if message already in state
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === newMessage.id);
+        return exists ? prev : [...prev, newMessage];
+      });
+    });
 
     return () => unsubscribe?.();
   }, [conversationId, userId]);

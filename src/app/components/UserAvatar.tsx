@@ -1,4 +1,4 @@
-import { optimizeImageUrl } from '@/lib/image';
+// Image optimization imports removed
 /**
  * WHY: Unify avatar presentation across profile, chat, and detail screens so identity cues feel more intentional.
  * CHANGED: YYYY-MM-DD
