@@ -12,12 +12,15 @@ import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { PreviewModeNotice } from "../components/PreviewModeNotice";
+import { ReviewForm } from "../components/ReviewForm";
+import { PaymentInitiator } from "../components/PaymentInitiator";
 import { SectionHeader } from "../components/SectionHeader";
 import { SkeletonBlock } from "../components/SkeletonBlock";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { Textarea } from "../components/Textarea";
 import { UserAvatar } from "../components/UserAvatar";
 import { useAppState } from "../hooks/useAppState";
+import { useCurrentUser } from "../hooks/useAppState";
 import { Application, Job } from "../../types/domain";
 import { formatDistance, formatUrgencyLabel } from "../utils/format";
 import { getFallbackPreviewMessage, isLocalPreviewSource } from "../../services/service.utils";
@@ -614,6 +617,60 @@ export function JobDetail() {
               </>
             )}
           </SurfaceCard>
+        )}
+
+        {job.status === "completado" && (
+          <div className="space-y-6">
+            {myApplication?.status === "aceptada" && myApplication.applicantUserId === currentUserId && (
+              <>
+                <PaymentInitiator
+                  jobId={job.id}
+                  amount={myApplication.proposedAmount}
+                  currency="USD"
+                  onPaymentInitiated={(_clientSecret: string, correlationId: string) => {
+                    toast.success("Pago iniciado", {
+                      description: `ID: ${correlationId.substring(0, 8)}...`,
+                    });
+                  }}
+                />
+
+                <ReviewForm
+                  jobId={job.id}
+                  revieweeId={job.postedByUserId}
+                  onSuccess={() => {
+                    toast.success("¡Gracias por tu reseña!");
+                    void loadJobById(job.id).then(setJob);
+                  }}
+                />
+              </>
+            )}
+
+            {isOwner && (
+              <>
+                <PaymentInitiator
+                  jobId={job.id}
+                  amount={myApplication?.proposedAmount || 0}
+                  currency="USD"
+                  onPaymentInitiated={(_clientSecret: string, correlationId: string) => {
+                    toast.success("Pago iniciado", {
+                      description: `ID: ${correlationId.substring(0, 8)}...`,
+                    });
+                  }}
+                />
+
+                {jobApplications.find((app: Application) => app.status === "aceptada")?.applicantUserId && (
+                  <ReviewForm
+                    jobId={job.id}
+                    revieweeId={jobApplications.find((app: Application) => app.status === "aceptada")!.applicantUserId}
+                    onSuccess={() => {
+                      toast.success("¡Gracias por tu reseña!");
+                      void loadJobById(job.id).then(setJob);
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>

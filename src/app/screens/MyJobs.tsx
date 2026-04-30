@@ -230,19 +230,29 @@ export function MyJobs() {
         ))}
 
         {activeTab === "completados" && completed.map((job) => (
-          <SurfaceCard key={job.id} padding="md" className="flex flex-col gap-3 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
-            <div className="min-w-0">
-              <h3 className="font-bold tracking-normal text-[var(--app-text)]">{job.title}</h3>
-              <div className="mt-2 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
-                <Clock size={12} />
-                <span>Trabajo finalizado</span>
+          <SurfaceCard key={job.id} padding="md">
+            <div className="flex flex-col gap-3 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+              <div className="min-w-0">
+                <h3 className="font-bold tracking-normal text-[var(--app-text)]">{job.title}</h3>
+                <div className="mt-2 flex items-center gap-2 text-xs text-[var(--app-text-muted)]">
+                  <Clock size={12} />
+                  <span>Trabajo finalizado</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" />
+                <Badge variant="completed" size="sm">
+                  Calificado
+                </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Star size={12} className="text-[#FBBF24] fill-[#FBBF24]" />
-              <Badge variant="completed" size="sm">
-                Calificado
-              </Badge>
+            <div className="mt-4 flex flex-col gap-2 min-[380px]:flex-row">
+              <button
+                onClick={() => navigate(`/job/${job.id}`)}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--app-border)] px-3 py-3 text-sm font-semibold text-[var(--app-text)]"
+              >
+                Ver detalles
+              </button>
             </div>
           </SurfaceCard>
         ))}

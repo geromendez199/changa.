@@ -12,6 +12,7 @@ import { ScreenHeader } from "../../components/ScreenHeader";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAppState } from "../../hooks/useAppState";
+import { useRealtimeNotifications } from "../../hooks/useRealtimeNotifications";
 import { formatRelative } from "../../utils/format";
 import { isLocalPreviewSource } from "../../../services/service.utils";
 import { subscribeToConversationMessages } from "../../../services/chat.service";
@@ -23,18 +24,26 @@ export function ChatDetail() {
   const [text, setText] = useState("");
   const [composerFeedback, setComposerFeedback] = useState<string | null>(null);
   const isPreview = isLocalPreviewSource(dataSource);
-  
+  const { triggerMessageNotification } = useRealtimeNotifications(currentUserId);
+
   // Subscribe to realtime messages
   useEffect(() => {
     if (!id || !currentUserId) return;
-    
+
+    const conversation = conversations.find((c) => c.id === id);
+    const otherUserId = conversation?.participantIds.find((uid) => uid !== currentUserId);
+    const otherUser = profiles.find((p) => p.id === otherUserId);
+
     const unsubscribe = subscribeToConversationMessages(id, (newMessage) => {
-      // Message will be added to AppState via realtime, no manual update needed
+      // Only notify if message is from the other user and user is not the sender
+      if (newMessage.senderUserId !== currentUserId && otherUser) {
+        void triggerMessageNotification(id, otherUser.name, newMessage.content.substring(0, 50));
+      }
       console.log("[Chat] Received realtime message:", newMessage.id);
     });
-    
+
     return () => unsubscribe?.();
-  }, [id, currentUserId]);
+  }, [id, currentUserId, conversations, profiles, triggerMessageNotification]);
 
   const conversation = conversations.find((item) => item.id === id);
 
