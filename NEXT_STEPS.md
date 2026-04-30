@@ -1,35 +1,95 @@
 <!--
-WHY: Capture intentionally deferred work so the Phase 3 pass stays scoped while preserving the roadmap to a safer server-side boundary.
-CHANGED: YYYY-MM-DD
+WHY: Track completed backend improvements and remaining frontend/infrastructure work
+CHANGED: 2026-04-30
 -->
 # Next Steps
 
-## Deferred on purpose
+## ✅ Completed (2026-04-30)
 
-### 1. Move auth-sensitive and payment-sensitive writes behind Supabase Edge Functions
-- Why deferred: this pass focused on client-boundary validation, reliability, and state decomposition without changing the browser-visible data contract.
-- Next move: introduce Edge Functions for payment initiation, privileged review creation checks, and any workflow that should not trust the browser.
+### 1. ✅ Move auth-sensitive and payment-sensitive writes behind Supabase Edge Functions
+- **Status**: DONE
+- **What was built**:
+  - `payment-initiate`: Secure Stripe payment processing
+  - `validate-review`: Defensive review creation with job completion checks
+  - `send-notifications`: In-app + email notifications
+  - `log-event`: Structured logging with correlation IDs
+- **Location**: `supabase/functions/` and `src/lib/edge-functions.ts`
 
-### 2. Tighten RLS policies for reviews and conversations
-- Why deferred: policy changes need a careful product pass to avoid blocking legitimate reads and writes in existing flows.
-- Next move: restrict review inserts to users tied to a completed job and validate conversation participation more defensively around creation paths.
+### 2. ✅ Tighten RLS policies for reviews and conversations
+- **Status**: DONE
+- **What was built**:
+  - Review policies: job completion + participation validation
+  - Conversation policies: job-based connection checks
+  - Message policies: conversation participant checks only
+  - Payment policies: no direct inserts (Edge Function only)
+  - Performance indexes on all RLS-filtered columns
+- **Location**: `supabase/migrations/20260430000000_rls_hardening.sql`
 
-### 3. Add structured logging and correlation IDs
-- Why deferred: the SPA currently lacks a shared telemetry sink, so adding correlation IDs end-to-end is more useful once Edge Functions exist.
-- Next move: add a request ID generator in the client, propagate it through Edge Functions, and emit structured logs from server-side boundaries.
+### 3. ✅ Add structured logging and correlation IDs
+- **Status**: DONE
+- **What was built**:
+  - `activity_logs` table with correlation_id tracking
+  - 90-day auto-cleanup for non-error logs
+  - RLS policies for log access
+  - Stdout integration for Sentry/Datadog
+- **Location**: `supabase/migrations/20260430000001_activity_logs.sql`
+
+### 6. ✅ Introduce server-side search and ranking
+- **Status**: DONE
+- **What was built**:
+  - `search_jobs()` RPC with full-text + relevance scoring
+  - `search_profiles()` RPC for freelancer discovery
+  - `get_job_recommendations()` for personalized matches
+  - Full-text indexes on job titles/descriptions
+- **Location**: `supabase/migrations/20260430000002_search_and_ranking.sql`
+
+### Query Optimization & Caching
+- **Status**: DONE
+- **What was built**:
+  - Materialized views: `mv_job_listings`, `mv_user_profiles`
+  - PostgreSQL cache layer with TTL support
+  - Query statistics table for monitoring
+  - Composite indexes for filter/sort patterns
+- **Location**: `supabase/migrations/20260430000003_query_optimization.sql`
+
+---
+
+## 🔄 Deferred (still valid)
 
 ### 4. Finish test infrastructure with Vitest + MSW
-- Why deferred: scripts and package scaffolding were added first, but full test config and verification are blocked in this environment because `node`/`npm` are unavailable.
-- Next move: add `vitest.config.ts`, `src/test/setup.ts`, MSW handlers, and the first service-level integration tests for auth, jobs search, and chat send flows.
+- Why deferred: node/npm availability in this environment
+- Next move: add `vitest.config.ts`, `src/test/setup.ts`, MSW handlers, and integration tests for auth, jobs search, and chat flows
+- Estimated effort: 2-3 days
 
 ### 5. Verify the hook split with real typecheck and regression tests
-- Why deferred: the split was completed statically, but it could not be validated locally with `npm run typecheck` or `npm run test`.
-- Next move: run typecheck, fix any inferred return mismatches, and add regression coverage around `useAppState()` consumers.
-
-### 6. Introduce server-side search and ranking only if browser-side PostgREST search becomes limiting
-- Why deferred: full-text search is now indexed and substantially better, so a dedicated RPC is not yet required.
-- Next move: add a ranked search RPC if relevance tuning, stemming, or analytics-driven weighting becomes necessary.
+- Why deferred: local verification was blocked
+- Next move: run `npm run typecheck`, fix return type mismatches, add regression tests for `useAppState()` consumers
+- Estimated effort: 1 day
 
 ### 7. Persist avatars outside localStorage
-- Why deferred: avatar persistence is still intentionally lightweight and local-only.
-- Next move: move avatar upload metadata to Supabase Storage plus `profiles`-adjacent persistence without breaking current UI usage.
+- Why deferred: current lightweight local approach works fine
+- Next move: migrate avatar metadata to Supabase Storage + `profiles` table without breaking UI
+- Estimated effort: 1-2 days
+
+---
+
+## 📋 New Deferred Work
+
+### 8. Integrate Edge Functions into frontend workflows
+- Deploy Edge Functions to Supabase production
+- Wire `initiatePayment()` into checkout flow
+- Wire `validateAndCreateReview()` into review submission
+- Wire `sendNotification()` into relevant events
+- Estimated effort: 2 days
+
+### 9. Monitoring and alerting for Edge Functions
+- Set up error tracking (already have Sentry)
+- Create alerts for payment failures
+- Monitor RLS policy violations
+- Estimated effort: 1 day
+
+### 10. Capacity testing for RPC search
+- Load test `search_jobs()` with 100k+ jobs
+- Optimize materialized view refresh strategy if needed
+- Consider read replicas for search if latency spikes
+- Estimated effort: 1 day
